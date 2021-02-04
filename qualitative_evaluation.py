@@ -29,10 +29,11 @@ class QualitativeEvaluation(pytorch_lightning.callbacks.Callback):
 
     def on_validation_epoch_end(self, trainer, model):
         with torch.no_grad():
-            for (features, labels, n_features, n_labels) in self.tiny_dataset:
-                h0 = torch.zeros(model.num_layers, 1, model.hidden_size).to(model.device)
+            for (features, labels, n_features, _) in self.tiny_dataset:
+
                 features = features.unsqueeze(0).to(model.device)
-                log_probabilities, _ = model(features, h0)
+                y, _ = model(features, torch.IntTensor([n_features]))
+                log_probabilities = torch.nn.functional.log_softmax(y, dim=2)
 
                 ground_truth = self.string_processor.labels_to_str(labels)
                 print("orig.:\t\t\"%s\"" % ground_truth)

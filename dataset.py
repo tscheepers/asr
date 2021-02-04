@@ -45,16 +45,22 @@ class StringProcessor:
 
 class Dataset(torch.utils.data.Dataset):
 
-    def __init__(self, samples: List[Sample], string_processor: StringProcessor, sample_rate=16000, n_features=64, max_timesteps=3000):
+    def __init__(self, samples: List[Sample], string_processor: StringProcessor, sample_rate=16000, window_size=0.02,
+                 window_stride=0.01, n_features=64, max_timesteps=3000):
         super(Dataset, self).__init__()
 
         self.samples = samples
         self.max_timesteps = max_timesteps
         self.sample_rate = sample_rate
+        self.window_size = window_size
+        self.window_stride = window_stride
 
         self.audio_transform = torchaudio.transforms.MelSpectrogram(
             sample_rate=sample_rate,
-            n_mels=n_features
+            n_mels=n_features,
+            n_fft=int(self.sample_rate * self.window_size),
+            win_length=int(self.sample_rate * self.window_size),
+            hop_length=int(self.sample_rate * self.window_stride)
         )
 
         self.string_processor = string_processor
@@ -98,7 +104,7 @@ class Dataset(torch.utils.data.Dataset):
 
 class CommonVoiceDataset(Dataset):
     def __init__(self, string_processor: StringProcessor, filename='dev.tsv', sample_rate=16000, n_features=64,
-                 max_timesteps=3000, sample_limit=None):
+                 max_timesteps=3000, window_size=0.02, window_stride=0.01, sample_limit=None):
 
         samples = []
         with open(CommonVoiceDataset.data_dir(filename), "r") as f:
@@ -114,7 +120,8 @@ class CommonVoiceDataset(Dataset):
                 samples.append(Sample(sentence, path))
 
         super(CommonVoiceDataset, self).__init__(samples, string_processor, sample_rate=sample_rate,
-                                                 n_features=n_features, max_timesteps=max_timesteps)
+                                                 n_features=n_features, max_timesteps=max_timesteps,
+                                                 window_size=window_size, window_stride=window_stride)
 
     @staticmethod
     def data_dir(*args, root="/home/thijs/Datasets/cv-corpus-6.1-2020-12-11/nl"):
@@ -125,7 +132,8 @@ class LibriSpeechDataset(Dataset):
     def __init__(self, string_processor: StringProcessor,
                  filepath='/home/thijs/Datasets/LibriSpeech/dev-clean/transcripts.tsv',
                  sample_rate=16000, n_features=64,
-                 max_timesteps=3000, sample_limit=None):
+                 max_timesteps=3000, window_size=0.02,
+                 window_stride=0.01, sample_limit=None):
 
         samples = []
         with open(filepath, "r") as f:
@@ -141,7 +149,8 @@ class LibriSpeechDataset(Dataset):
                 samples.append(Sample(sentence, path))
 
         super(LibriSpeechDataset, self).__init__(samples, string_processor, sample_rate=sample_rate,
-                                                 n_features=n_features, max_timesteps=max_timesteps)
+                                                 n_features=n_features, max_timesteps=max_timesteps,
+                                                 window_size=window_size, window_stride=window_stride)
 
 
 def pad_dataset(dataset):
@@ -158,5 +167,7 @@ def pad_dataset(dataset):
 
     all_features = torch.nn.utils.rnn.pad_sequence(all_features, batch_first=True).transpose(1, 2)
     all_labels = torch.nn.utils.rnn.pad_sequence(all_labels, batch_first=True)
+    all_n_features = torch.IntTensor(all_n_features)
+    all_n_labels = torch.IntTensor(all_n_labels)
 
     return all_features, all_labels, all_n_features, all_n_labels
