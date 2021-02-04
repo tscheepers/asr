@@ -1,13 +1,13 @@
 import pytorch_lightning
 import torch
-from common_voice_dataset import CommonVoiceDataset, pad_dataset
+from dataset import LibriSpeechDataset, pad_dataset, StringProcessor
 from qualitative_evaluation import QualitativeEvaluation
 
 
 class Model(pytorch_lightning.core.lightning.LightningModule):
 
-    def __init__(self, batch_size=64, hidden_size=256, num_classes=28, n_features=64,
-                 num_layers=2, dropout=0.1, sample_rate=16000, max_timesteps=3000):
+    def __init__(self, string_processor: StringProcessor, batch_size=64, hidden_size=256, num_classes=28, n_features=64,
+                 num_layers=3, dropout=0.1, sample_rate=16000, max_timesteps=3000):
         super(Model, self).__init__()
 
         self.batch_size = batch_size
@@ -16,19 +16,20 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         self.sample_rate = sample_rate
         self.max_timesteps = max_timesteps
         self.n_features = n_features
+        self.string_processor = string_processor
 
         self.rnn = torch.nn.GRU(input_size=n_features, hidden_size=hidden_size,
                                 num_layers=num_layers, dropout=dropout)
 
         self.final_fc = torch.nn.Linear(hidden_size, num_classes)
 
-        self.criterion = torch.nn.CTCLoss(blank=27, zero_infinity=True)
+        self.criterion = torch.nn.CTCLoss(blank=self.string_processor.blank_id, zero_infinity=True)
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=1e-3)
 
     def forward(self, x, hidden):
-        x = x.transpose(0, 2).transpose(1, 2) # time, batch, feature
+        x = x.transpose(0, 2).transpose(1, 2)  # time, batch, feature
 
         z, hidden = self.rnn(x, hidden)
 
@@ -54,8 +55,9 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         return {'loss': loss}
 
     def train_dataloader(self):
-        dataset = CommonVoiceDataset(
-            filename='train.tsv',
+        dataset = LibriSpeechDataset(
+            self.string_processor,
+            filepath='/home/thijs/Datasets/LibriSpeech/train-clean-100/transcripts.tsv',
             n_features=self.n_features,
             sample_rate=self.sample_rate,
             max_timesteps=self.max_timesteps
@@ -77,8 +79,9 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         print('\n\n Total validation loss: %f' % avg_loss)
 
     def val_dataloader(self):
-        dataset = CommonVoiceDataset(
-            filename='dev.tsv',
+        dataset = LibriSpeechDataset(
+            self.string_processor,
+            filepath='/home/thijs/Datasets/LibriSpeech/dev-clean/transcripts.tsv',
             n_features=self.n_features,
             sample_rate=self.sample_rate,
             max_timesteps=self.max_timesteps
@@ -92,8 +95,9 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         )
 
     def test_dataloader(self):
-        dataset = CommonVoiceDataset(
-            filename='test.tsv',
+        dataset = LibriSpeechDataset(
+            self.string_processor,
+            filepath='/home/thijs/Datasets/LibriSpeech/test-clean/transcripts.tsv',
             n_features=self.n_features,
             sample_rate=self.sample_rate,
             max_timesteps=self.max_timesteps
@@ -108,9 +112,10 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
 
 
 if __name__ == '__main__':
-    model = Model()
+    string_processor = StringProcessor()
+    model = Model(string_processor)
     pytorch_lightning.Trainer(
-        max_epochs=1000, gpus=1,
+        max_epochs=10000, gpus=1,
         num_nodes=1, distributed_backend=None,
         gradient_clip_val=1.0,
         progress_bar_refresh_rate=5,

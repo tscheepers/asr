@@ -1,25 +1,30 @@
 import pytorch_lightning
 import torch
 from ctcdecode import CTCBeamDecoder
-from common_voice_dataset import CommonVoiceDataset, StringProcessor
+from dataset import LibriSpeechDataset, StringProcessor
 
 
 class QualitativeEvaluation(pytorch_lightning.callbacks.Callback):
 
     def __init__(self, n_samples=2):
         self.tiny_dataset = None
+        self.string_processor = None
+        self.beam_search = None
         self.n_samples = n_samples
-        self.string_processor = StringProcessor()
-        self.beam_search = CTCBeamDecoder(self.string_processor.chars, beam_width=100, blank_id=27, log_probs_input=True)
 
     def setup(self, trainer, model, stage: str):
-        self.tiny_dataset = CommonVoiceDataset(
-            filename='dev.tsv',
+        self.string_processor = model.string_processor
+
+        self.tiny_dataset = LibriSpeechDataset(
+            model.string_processor,
             n_features=model.n_features,
             sample_rate=model.sample_rate,
             max_timesteps=model.max_timesteps,
             sample_limit=self.n_samples
         )
+
+        self.beam_search = CTCBeamDecoder(self.string_processor.chars, beam_width=100,
+                                          blank_id=self.string_processor.blank_id, log_probs_input=True)
 
     def on_validation_epoch_end(self, trainer, model):
         with torch.no_grad():
@@ -33,7 +38,7 @@ class QualitativeEvaluation(pytorch_lightning.callbacks.Callback):
 
                 arg_maxes = torch.argmax(log_probabilities.squeeze(1), 1).cpu().numpy()
                 output = self.string_processor.labels_to_str(arg_maxes)
-                greedy = self.string_processor.labels_to_str(collapse_ctc(arg_maxes))
+                greedy = self.string_processor.labels_to_str(collapse_ctc(arg_maxes, blank_id=self.string_processor.blank_id))
                 print("output:\t\t\"%s\"" % output)
                 print("greedy:\t\t\"%s\"" % greedy)
 
