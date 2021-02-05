@@ -3,15 +3,15 @@ import math
 import pytorch_lightning
 import torch
 from dataset import LibriSpeechDataset, pad_dataset, StringProcessor
-from layer import MaskConv, SequenceWise, BatchRNN
+from layer import MaskConv, SequenceWise, BatchRNN, Lookahead
 from qualitative_evaluation import QualitativeEvaluation
 
 
 class Model(pytorch_lightning.core.lightning.LightningModule):
 
-    def __init__(self, string_processor: StringProcessor, batch_size=64, hidden_size=256, num_classes=28,
-                 n_features=161, num_layers=1, sample_rate=16000, window_size=0.02, window_stride=0.01,
-                 max_timesteps=3000):
+    def __init__(self, string_processor: StringProcessor, batch_size=16, hidden_size=1024, num_classes=28,
+                 n_features=161, num_layers=5, sample_rate=16000, window_size=0.02, window_stride=0.01,
+                 max_timesteps=4000, lookahead_context=20):
         super(Model, self).__init__()
 
         self.batch_size = batch_size
@@ -23,6 +23,7 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         self.window_size = window_size
         self.window_stride = window_stride
         self.string_processor = string_processor
+        self.lookahead_context = lookahead_context
 
         self.conv = MaskConv(torch.nn.Sequential(
             torch.nn.Conv2d(1, 32, kernel_size=(41, 11), stride=(2, 2), padding=(20, 5)),
@@ -53,6 +54,11 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
             )
         )
 
+        self.lookahead = torch.nn.Sequential(
+            Lookahead(self.hidden_size, context=self.lookahead_context),
+            torch.nn.Hardtanh(0, 20, inplace=True)
+        )
+
         self.fc = SequenceWise(torch.nn.Sequential(
             torch.nn.BatchNorm1d(self.hidden_size),
             torch.nn.Linear(self.hidden_size, num_classes, bias=False)
@@ -61,7 +67,21 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         self.criterion = torch.nn.CTCLoss(blank=self.string_processor.blank_id, zero_infinity=True)
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=1e-3)
+
+        optimizer = torch.optim.Adam(
+            params=self.parameters(),
+            lr=1e-3,
+            eps=1e-8,
+            betas=(0.9, 0.999),
+            weight_decay=1e-5
+        )
+
+        scheduler = torch.optim.lr_scheduler.ExponentialLR(
+            optimizer=optimizer,
+            gamma=0.99
+        )
+
+        return [optimizer], [scheduler]
 
     def forward(self, features, n_features):
         n = self.get_n_hidden(n_features)
@@ -74,9 +94,10 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         for rnn in self.rnns:
             x = rnn(x, n)
 
-        y = self.fc(x)
+        x = self.lookahead(x)
+        x = self.fc(x)
 
-        return y, n
+        return x, n
 
     def get_n_hidden(self, n_features):
         n = n_features.cpu().int()
