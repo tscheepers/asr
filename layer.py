@@ -59,7 +59,7 @@ class SequenceWise(torch.nn.Module):
 
 
 class BatchRNN(torch.nn.Module):
-    def __init__(self, input_size, hidden_size, rnn_type=torch.nn.GRU, bidirectional=False, batch_norm=True):
+    def __init__(self, input_size, hidden_size, rnn_type=torch.nn.LSTM, bidirectional=False, batch_norm=True):
         super(BatchRNN, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
@@ -114,3 +114,11 @@ class Lookahead(torch.nn.Module):
         return self.__class__.__name__ + '(' \
                + 'n_features=' + str(self.n_features) \
                + ', context=' + str(self.context) + ')'
+
+
+class InferenceBatchSoftmax(torch.nn.Module):
+    def forward(self, input_):
+        if not self.training:
+            return torch.nn.functional.softmax(input_, dim=-1)
+        else:
+            return input_

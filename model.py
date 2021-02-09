@@ -3,14 +3,16 @@ import math
 import pytorch_lightning
 import torch
 from dataset import LibriSpeechDataset, pad_dataset, StringProcessor
-from layer import MaskConv, SequenceWise, BatchRNN, Lookahead
+from decoder import GreedyDecoder
+from layer import MaskConv, SequenceWise, BatchRNN, Lookahead, InferenceBatchSoftmax
 from qualitative_evaluation import QualitativeEvaluation
+from validation import WordErrorRate, CharErrorRate
 
 
 class Model(pytorch_lightning.core.lightning.LightningModule):
 
-    def __init__(self, string_processor: StringProcessor, batch_size=16, hidden_size=1024, num_classes=28,
-                 n_features=161, num_layers=5, sample_rate=16000, window_size=0.02, window_stride=0.01,
+    def __init__(self, string_processor: StringProcessor, batch_size=16, hidden_size=1024,
+                 n_features=80, num_layers=5, sample_rate=16000, window_size=0.02, window_stride=0.01,
                  max_timesteps=4000, lookahead_context=20):
         super(Model, self).__init__()
 
@@ -35,7 +37,7 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         ))
 
         # Based on above convolutions and spectrogram size using conv formula (W - F + 2P)/ S+1
-        rnn_input_size = int(math.floor(self.sample_rate * self.window_size / 2) + 1)
+        rnn_input_size = int(n_features)
         rnn_input_size = int(math.floor(rnn_input_size + 2 * 20 - 41) / 2 + 1)
         rnn_input_size = int(math.floor(rnn_input_size + 2 * 10 - 21) / 2 + 1)
         rnn_input_size *= 32
@@ -61,10 +63,27 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
 
         self.fc = SequenceWise(torch.nn.Sequential(
             torch.nn.BatchNorm1d(self.hidden_size),
-            torch.nn.Linear(self.hidden_size, num_classes, bias=False)
+            torch.nn.Linear(self.hidden_size, len(self.string_processor.chars), bias=False)
         ))
 
+        self.inference_softmax = InferenceBatchSoftmax()
+
         self.criterion = torch.nn.CTCLoss(blank=self.string_processor.blank_id, zero_infinity=True)
+
+        self.evaluation_decoder = GreedyDecoder(
+            self.string_processor.chars,
+            blank_index=self.string_processor.blank_id
+        )  # Decoder used for validation
+
+        self.wer = WordErrorRate(
+            decoder=self.evaluation_decoder,
+            target_decoder=self.evaluation_decoder
+        )
+
+        self.cer = CharErrorRate(
+            decoder=self.evaluation_decoder,
+            target_decoder=self.evaluation_decoder
+        )
 
     def configure_optimizers(self):
 
@@ -95,7 +114,12 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
             x = rnn(x, n)
 
         x = self.lookahead(x)
+
         x = self.fc(x)
+        x = x.transpose(0, 1)
+
+        # identity in training mode, softmax in eval mode
+        x = self.inference_softmax(x)
 
         return x, n
 
@@ -106,23 +130,19 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
                 n = ((n + 2 * m.padding[1] - m.dilation[1] * (m.kernel_size[1] - 1) - 1) // m.stride[1] + 1)
         return n.int()
 
-    def step(self, batch):
+    def training_step(self, batch, batch_idx):
         features, labels, n_features, n_labels = batch
         y, n_y = self.forward(features, n_features)
 
-        log_probabilities = torch.nn.functional.log_softmax(y, dim=2)
-        loss = self.criterion(log_probabilities, labels, n_y, n_labels)
+        loss = self.criterion(y.transpose(0, 1).log_softmax(-1), labels, n_y, n_labels)
 
-        return loss, log_probabilities
-
-    def training_step(self, batch, batch_idx):
-        loss, _ = self.step(batch)
-        return {'loss': loss}
+        self.log('train_loss', loss, prog_bar=True, on_epoch=True, logger=True)
+        return loss
 
     def train_dataloader(self):
         dataset = LibriSpeechDataset(
             self.string_processor,
-            filepath='/home/thijs/Datasets/LibriSpeech/train-clean-100/transcripts.tsv',
+            filepath='/home/thijs/Datasets/LibriSpeech/train_transcriptions.tsv',
             n_features=self.n_features,
             sample_rate=self.sample_rate,
             window_size=self.window_size,
@@ -138,17 +158,30 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         )
 
     def validation_step(self, batch, batch_idx):
-        loss, _ = self.step(batch)
-        return {'loss': loss}
+        features, labels, n_features, n_labels = batch
+        y, n_y = self.forward(features, n_features)
 
-    def validation_epoch_end(self, outputs):
-        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
-        print('\n\n Total validation loss: %f' % avg_loss)
+        self.wer(
+            preds=y,
+            preds_sizes=n_y,
+            targets=labels,
+            target_sizes=n_labels
+        )
+
+        self.cer(
+            preds=y,
+            preds_sizes=n_y,
+            targets=labels,
+            target_sizes=n_labels
+        )
+
+        self.log('val_wer', self.wer.compute(), prog_bar=True, on_epoch=True, logger=True)
+        self.log('val_cer', self.cer.compute(), prog_bar=True, on_epoch=True, logger=True)
 
     def val_dataloader(self):
         dataset = LibriSpeechDataset(
             self.string_processor,
-            filepath='/home/thijs/Datasets/LibriSpeech/dev-clean/transcripts.tsv',
+            filepath='/home/thijs/Datasets/LibriSpeech/dev_transcriptions.tsv',
             n_features=self.n_features,
             sample_rate=self.sample_rate,
             window_size=self.window_size,
@@ -166,7 +199,7 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
     def test_dataloader(self):
         dataset = LibriSpeechDataset(
             self.string_processor,
-            filepath='/home/thijs/Datasets/LibriSpeech/test-clean/transcripts.tsv',
+            filepath='/home/thijs/Datasets/LibriSpeech/test_transcriptions.tsv',
             n_features=self.n_features,
             sample_rate=self.sample_rate,
             window_size=self.window_size,
@@ -183,12 +216,22 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
 
 
 if __name__ == '__main__':
-    string_processor = StringProcessor()
-    model = Model(string_processor)
+    model = Model(StringProcessor())
     pytorch_lightning.Trainer(
-        max_epochs=10000, gpus=1,
-        num_nodes=1, distributed_backend=None,
-        gradient_clip_val=1.0,
+        max_epochs=1000, gpus=1,
+        # num_nodes=1, distributed_backend=None,
+        gradient_clip_val=400,
+        auto_scale_batch_size='binsearch',
         progress_bar_refresh_rate=5,
-        callbacks=[QualitativeEvaluation()]
+        # overfit_batches=1,
+        # check_val_every_n_epoch=10,
+        weights_summary='full',
+        callbacks=[
+            QualitativeEvaluation(),
+            pytorch_lightning.callbacks.ModelCheckpoint(
+                dirpath='./checkpoints', monitor='val_wer',
+                save_top_k=1, save_last=True, mode='min'
+            )
+        ],
+        logger=pytorch_lightning.loggers.TensorBoardLogger('./logs', name='speech_recognition')
     ).fit(model)

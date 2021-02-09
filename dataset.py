@@ -1,6 +1,7 @@
 import torch
 import torchaudio
 import re
+import warnings
 
 from typing import List
 
@@ -17,7 +18,7 @@ class Sample:
 class StringProcessor:
     def __init__(self):
         self.chars = [
-            ' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
+            ' ', '\'', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
             'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q',
             'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '.'
         ]
@@ -29,7 +30,7 @@ class StringProcessor:
         string = string.lower()
 
         # remove all chars not in the char list
-        string = re.sub('[^a-z ]+', '', string)
+        string = re.sub('[^a-z \']+', '', string)
 
         # remove double spaces
         string = re.sub(' +', ' ', string)
@@ -85,7 +86,9 @@ class Dataset(torch.utils.data.Dataset):
         if sample_rate < self.sample_rate:
             raise Exception('Sample rates mismatch %d < %d' % (sample_rate, self.sample_rate))
 
-        features = self.audio_transform(waveform)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            features = self.audio_transform(waveform)
 
         if features.shape[0] > 1:
             raise Exception('Dual channel audio')
@@ -130,7 +133,7 @@ class CommonVoiceDataset(Dataset):
 
 class LibriSpeechDataset(Dataset):
     def __init__(self, string_processor: StringProcessor,
-                 filepath='/home/thijs/Datasets/LibriSpeech/dev-clean/transcripts.tsv',
+                 filepath='/home/thijs/Datasets/LibriSpeech/dev_transcriptions.tsv',
                  sample_rate=16000, n_features=64,
                  max_timesteps=3000, window_size=0.02,
                  window_stride=0.01, sample_limit=None):
