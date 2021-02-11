@@ -18,7 +18,6 @@ class QualitativeEvaluation(pytorch_lightning.callbacks.Callback):
 
         self.tiny_dataset = LibriSpeechDataset(
             model.string_processor,
-            n_features=model.n_features,
             sample_rate=model.sample_rate,
             max_timesteps=model.max_timesteps,
             sample_limit=self.n_samples

@@ -1,3 +1,5 @@
+import math
+
 import torch
 import torchaudio
 import re
@@ -58,7 +60,7 @@ class Dataset(torch.utils.data.Dataset):
 
         self.audio_transform = torchaudio.transforms.MelSpectrogram(
             sample_rate=sample_rate,
-            n_mels=n_features,
+            n_mels=int(math.floor((self.sample_rate * self.window_size) / 2) + 1),
             n_fft=int(self.sample_rate * self.window_size),
             win_length=int(self.sample_rate * self.window_size),
             hop_length=int(self.sample_rate * self.window_stride)

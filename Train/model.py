@@ -11,8 +11,8 @@ from validation import WordErrorRate, CharErrorRate
 
 class Model(pytorch_lightning.core.lightning.LightningModule):
 
-    def __init__(self, string_processor: StringProcessor, batch_size=16, hidden_size=1024,
-                 n_features=80, num_layers=5, sample_rate=16000, window_size=0.02, window_stride=0.01,
+    def __init__(self, string_processor: StringProcessor, batch_size=24, hidden_size=1024,
+                 num_layers=5, sample_rate=16000, window_size=0.02, window_stride=0.01,
                  max_timesteps=4000, lookahead_context=20):
         super(Model, self).__init__()
 
@@ -21,7 +21,6 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         self.hidden_size = hidden_size
         self.sample_rate = sample_rate
         self.max_timesteps = max_timesteps
-        self.n_features = n_features
         self.window_size = window_size
         self.window_stride = window_stride
         self.string_processor = string_processor
@@ -37,7 +36,7 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         ))
 
         # Based on above convolutions and spectrogram size using conv formula (W - F + 2P)/ S+1
-        rnn_input_size = int(n_features)
+        rnn_input_size = int(math.floor((self.sample_rate * self.window_size) / 2) + 1)
         rnn_input_size = int(math.floor(rnn_input_size + 2 * 20 - 41) / 2 + 1)
         rnn_input_size = int(math.floor(rnn_input_size + 2 * 10 - 21) / 2 + 1)
         rnn_input_size *= 32
@@ -87,7 +86,7 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
 
     def configure_optimizers(self):
 
-        optimizer = torch.optim.Adam(
+        optimizer = torch.optim.AdamW(
             params=self.parameters(),
             lr=1e-3,
             eps=1e-8,
@@ -143,7 +142,6 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         dataset = LibriSpeechDataset(
             self.string_processor,
             filepath='/home/thijs/Datasets/LibriSpeech/train_transcriptions.tsv',
-            n_features=self.n_features,
             sample_rate=self.sample_rate,
             window_size=self.window_size,
             window_stride=self.window_stride,
@@ -182,7 +180,6 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         dataset = LibriSpeechDataset(
             self.string_processor,
             filepath='/home/thijs/Datasets/LibriSpeech/dev_transcriptions.tsv',
-            n_features=self.n_features,
             sample_rate=self.sample_rate,
             window_size=self.window_size,
             window_stride=self.window_stride,
@@ -200,7 +197,6 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         dataset = LibriSpeechDataset(
             self.string_processor,
             filepath='/home/thijs/Datasets/LibriSpeech/test_transcriptions.tsv',
-            n_features=self.n_features,
             sample_rate=self.sample_rate,
             window_size=self.window_size,
             window_stride=self.window_stride,
@@ -225,6 +221,7 @@ if __name__ == '__main__':
         progress_bar_refresh_rate=5,
         # overfit_batches=1,
         # check_val_every_n_epoch=10,
+        # val_check_interval=1000,
         weights_summary='full',
         callbacks=[
             QualitativeEvaluation(),
