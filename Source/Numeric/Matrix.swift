@@ -79,6 +79,40 @@ extension Matrix where T : FloatingPoint {
         let flat = [T](repeating: T.zero, count: shape.height * shape.width)
         return Matrix<T>(shape: shape, flat: flat)
     }
+
+    /// Switch the axis
+    func transposed() -> Matrix<T> {
+        var new = Matrix<T>.zeros(shape: (width, height))
+
+        // TODO: Improve
+        for i in 0..<height {
+            for j in 0..<width {
+                new[j,i] = self[i,j]
+            }
+        }
+
+        return new
+    }
+
+    /// Argmax for each row
+    func argmax() -> [Int] {
+        return (0..<self.height).compactMap { row -> Int? in
+            self[row].argmax()
+        }
+    }
+
+    /// Mean of the matrix
+    var mean: T {
+        return sum / T(count)
+    }
+
+    /// Standard deviation
+    var std: T {
+        let mean = self.mean
+        let n: T = T(count)
+        let innerSum: T = flat.reduce(T.zero, { $0 + ($1 - mean) * ($1 - mean) })
+        return sqrt(1/n * innerSum)
+    }
 }
 
 // MARK: - Elementwise operators

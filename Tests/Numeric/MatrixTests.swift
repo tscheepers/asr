@@ -1,4 +1,5 @@
 import XCTest
+import CoreML
 
 class MatrixTests: XCTestCase {
     
@@ -22,12 +23,31 @@ class MatrixTests: XCTestCase {
 
         ASRAssertEqual(normalized, Fixtures.normalizedSpectrogram, accuracy: 0.01)
     }
+
+    func testCoreMLMultiArray() {
+        let matrix = Matrix(
+            shape: (Fixtures.normalizedSpectrogram.count, Fixtures.normalizedSpectrogram[0].count),
+            flat: Fixtures.normalizedSpectrogram.flatMap({ $0 })
+        )
+        let multiArray = matrix.createMLMultiArray()
+        ASRAssertEqual(matrix, multiArray)
+    }
 }
 
 func ASRAssertEqual<T>(_ matrix: Matrix<T>, _ list: [[T]]) where T : FloatingPoint {
     for i in 0..<matrix.height {
         for j in 0..<matrix.width {
             XCTAssertEqual(matrix[i, j], list[i][j], "(\(i),\(j)) not equal")
+        }
+    }
+}
+
+func ASRAssertEqual(_ matrix: Matrix<Float>, _ multiArray: MLMultiArray) {
+    for i in 0..<matrix.height {
+        for j in 0..<matrix.width {
+            let matrixValue = NSNumber(value: matrix[i, j])
+            let multiArrayValue = multiArray[[i,j] as [NSNumber]]
+            XCTAssertEqual(matrixValue, multiArrayValue, "(\(i),\(j)) not equal")
         }
     }
 }

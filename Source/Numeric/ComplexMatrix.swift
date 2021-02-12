@@ -11,14 +11,14 @@ struct ComplexMatrix<T> {
     var count: Int { return width * height }
 
     var flatReal: [T]
-    var flatComplex: [T]
+    var flatImag: [T]
 
-    init(shape: (height: Int, width: Int), flatReal: [T], flatComplex: [T]) {
+    init(shape: (height: Int, width: Int), flatReal: [T], flatImag: [T]) {
         assert(flatReal.count == shape.height * shape.width, "Flat does not correspond with shape")
-        assert(flatComplex.count == shape.height * shape.width, "Flat does not correspond with shape")
+        assert(flatImag.count == shape.height * shape.width, "Flat does not correspond with shape")
         self.shape = shape
         self.flatReal = flatReal
-        self.flatComplex = flatComplex
+        self.flatImag = flatImag
     }
 
     /// Access the matrix using `matrix[x,y]`
@@ -26,18 +26,18 @@ struct ComplexMatrix<T> {
         get {
             assert(row >= 0 && row < height, "Row index out of range")
             assert(col >= 0 && col < width, "Col index out of range")
-            return (self.flatReal[(row * width) + col], self.flatComplex[(row * width) + col])
+            return (self.flatReal[(row * width) + col], self.flatImag[(row * width) + col])
         }
         set {
             assert(row >= 0 && row < height, "Row index out of range")
             assert(col >= 0 && col < width, "Col index out of range")
             self.flatReal[(row * width) + col] = newValue.real
-            self.flatComplex[(row * width) + col] = newValue.imag
+            self.flatImag[(row * width) + col] = newValue.imag
         }
     }
 
     func map<A>(_ transform: (Complex<T>) throws -> A) rethrows -> Matrix<A> {
-        return Matrix<A>(shape: shape, flat: try zip(self.flatReal, self.flatComplex).map(transform))
+        return Matrix<A>(shape: shape, flat: try zip(self.flatReal, self.flatImag).map(transform))
     }
 
 }

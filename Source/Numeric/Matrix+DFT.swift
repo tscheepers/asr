@@ -37,7 +37,7 @@ extension Matrix where T == Float {
             vDSP_DFT_DestroySetup(setupToDestroy)
         }
 
-        return ComplexMatrix<Float>(shape: (height: self.shape.height, width: self.width/2+1), flatReal: flatReals, flatComplex: flatImags)
+        return ComplexMatrix<Float>(shape: (height: self.shape.height, width: self.width/2+1), flatReal: flatReals, flatImag: flatImags)
     }
 }
 
@@ -88,7 +88,7 @@ extension Matrix where T == Double {
             vDSP_DFT_DestroySetupD(setupToDestroy)
         }
 
-        return ComplexMatrix<Double>(shape: (height: self.shape.height, width: self.width/2+1), flatReal: flatReals, flatComplex: flatImags)
+        return ComplexMatrix<Double>(shape: (height: self.shape.height, width: self.width/2+1), flatReal: flatReals, flatImag: flatImags)
     }
 }
 

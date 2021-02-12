@@ -74,20 +74,8 @@ extension Array where Element : FloatingPoint {
         // On an even window length we make sure there is always a peak of 1.0 by adding an extra item
         let evenCorrection = (windowLength % 2 == 0 ? 1 : 0)
         return interpolation(start: 0, stop: 2*Element.pi, count: windowLength + evenCorrection)
-            .map { (1 - cos($0))/2 }.reversed().dropLast(evenCorrection)
+            .map { (1 - cos($0))/2 }.dropLast(evenCorrection)
 
-    }
-}
-
-extension Array {
-    /// Creates a new Array by repeating an existing array
-    init(repeating: [Element], count: Int) {
-        self.init([[Element]](repeating: repeating, count: count).flatMap{$0})
-    }
-
-    /// New Array from current array by repeating it `count` times
-    func repeated(count: Int) -> [Element] {
-        return [Element](repeating: self, count: count)
     }
 }
 

@@ -15,17 +15,27 @@
 		7640CE0525D69CBB006993BF /* MatrixTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CDF725D69CBB006993BF /* MatrixTests.swift */; };
 		7640CE0725D69CBB006993BF /* ComplexMatrixTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CDF825D69CBB006993BF /* ComplexMatrixTest.swift */; };
 		7640CE0925D69CBB006993BF /* VectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CDF925D69CBB006993BF /* VectorTests.swift */; };
-		7640CE1325D69CDA006993BF /* Matrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CE0E25D69CDA006993BF /* Matrix.swift */; };
-		7640CE1425D69CDA006993BF /* Matrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CE0E25D69CDA006993BF /* Matrix.swift */; };
-		7640CE1525D69CDA006993BF /* Vector+STFT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CE0F25D69CDA006993BF /* Vector+STFT.swift */; };
-		7640CE1625D69CDA006993BF /* Vector+STFT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CE0F25D69CDA006993BF /* Vector+STFT.swift */; };
-		7640CE1725D69CDA006993BF /* Matrix+DFT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CE1025D69CDA006993BF /* Matrix+DFT.swift */; };
-		7640CE1825D69CDA006993BF /* Matrix+DFT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CE1025D69CDA006993BF /* Matrix+DFT.swift */; };
-		7640CE1925D69CDA006993BF /* ComplexMatrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CE1125D69CDA006993BF /* ComplexMatrix.swift */; };
-		7640CE1A25D69CDA006993BF /* ComplexMatrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CE1125D69CDA006993BF /* ComplexMatrix.swift */; };
-		7640CE1B25D69CDA006993BF /* Matrix+vDSP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CE1225D69CDA006993BF /* Matrix+vDSP.swift */; };
-		7640CE1C25D69CDA006993BF /* Matrix+vDSP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CE1225D69CDA006993BF /* Matrix+vDSP.swift */; };
 		7640CE2625D6A5D9006993BF /* NormalizedSpectrogram.csv in Resources */ = {isa = PBXBuildFile; fileRef = 7640CE2525D6A5D9006993BF /* NormalizedSpectrogram.csv */; };
+		76608DA325D6AA6E000C6BE5 /* DeepSpeech.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 76608DA225D6AA6E000C6BE5 /* DeepSpeech.mlmodel */; };
+		76608DAC25D6AAA2000C6BE5 /* Vector+STFT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608DA725D6AAA2000C6BE5 /* Vector+STFT.swift */; };
+		76608DAD25D6AAA2000C6BE5 /* Matrix+vDSP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608DA825D6AAA2000C6BE5 /* Matrix+vDSP.swift */; };
+		76608DAE25D6AAA2000C6BE5 /* ComplexMatrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608DA925D6AAA2000C6BE5 /* ComplexMatrix.swift */; };
+		76608DAF25D6AAA2000C6BE5 /* Matrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608DAA25D6AAA2000C6BE5 /* Matrix.swift */; };
+		76608DB025D6AAA2000C6BE5 /* Matrix+DFT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608DAB25D6AAA2000C6BE5 /* Matrix+DFT.swift */; };
+		76608DBA25D6AAD6000C6BE5 /* ASR.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608DB925D6AAD6000C6BE5 /* ASR.swift */; };
+		76608DBD25D6AB1D000C6BE5 /* librispeech-sample.wav in Resources */ = {isa = PBXBuildFile; fileRef = 7640CDF225D69CBB006993BF /* librispeech-sample.wav */; };
+		76608DC125D6ACF6000C6BE5 /* Matrix+CoreML.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608DC025D6ACF6000C6BE5 /* Matrix+CoreML.swift */; };
+		76608DC625D6B070000C6BE5 /* Vector+STFT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608DA725D6AAA2000C6BE5 /* Vector+STFT.swift */; };
+		76608DC725D6B070000C6BE5 /* Matrix+DFT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608DAB25D6AAA2000C6BE5 /* Matrix+DFT.swift */; };
+		76608DC825D6B070000C6BE5 /* Matrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608DAA25D6AAA2000C6BE5 /* Matrix.swift */; };
+		76608DC925D6B070000C6BE5 /* Matrix+vDSP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608DA825D6AAA2000C6BE5 /* Matrix+vDSP.swift */; };
+		76608DCA25D6B070000C6BE5 /* Matrix+CoreML.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608DC025D6ACF6000C6BE5 /* Matrix+CoreML.swift */; };
+		76608DCB25D6B070000C6BE5 /* ComplexMatrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608DA925D6AAA2000C6BE5 /* ComplexMatrix.swift */; };
+		76608DDD25D6B9D0000C6BE5 /* ASRTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608DD525D6B770000C6BE5 /* ASRTests.swift */; };
+		76608DE225D6B9D4000C6BE5 /* ASR.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608DB925D6AAD6000C6BE5 /* ASR.swift */; };
+		76608DE525D6BA88000C6BE5 /* DeepSpeech.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 76608DA225D6AA6E000C6BE5 /* DeepSpeech.mlmodel */; };
+		76608DE925D6BC1A000C6BE5 /* Vector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608DE825D6BC1A000C6BE5 /* Vector.swift */; };
+		76608DEC25D6BC1E000C6BE5 /* Vector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608DE825D6BC1A000C6BE5 /* Vector.swift */; };
 		76B9BAEB25D59339000AADCC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B9BAEA25D59339000AADCC /* AppDelegate.swift */; };
 		76B9BAED25D59339000AADCC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B9BAEC25D59339000AADCC /* SceneDelegate.swift */; };
 		76B9BAEF25D59339000AADCC /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B9BAEE25D59339000AADCC /* ViewController.swift */; };
@@ -53,12 +63,19 @@
 		7640CDF725D69CBB006993BF /* MatrixTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MatrixTests.swift; sourceTree = "<group>"; };
 		7640CDF825D69CBB006993BF /* ComplexMatrixTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ComplexMatrixTest.swift; sourceTree = "<group>"; };
 		7640CDF925D69CBB006993BF /* VectorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VectorTests.swift; sourceTree = "<group>"; };
-		7640CE0E25D69CDA006993BF /* Matrix.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Matrix.swift; sourceTree = "<group>"; };
-		7640CE0F25D69CDA006993BF /* Vector+STFT.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Vector+STFT.swift"; sourceTree = "<group>"; };
-		7640CE1025D69CDA006993BF /* Matrix+DFT.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Matrix+DFT.swift"; sourceTree = "<group>"; };
-		7640CE1125D69CDA006993BF /* ComplexMatrix.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ComplexMatrix.swift; sourceTree = "<group>"; };
-		7640CE1225D69CDA006993BF /* Matrix+vDSP.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Matrix+vDSP.swift"; sourceTree = "<group>"; };
 		7640CE2525D6A5D9006993BF /* NormalizedSpectrogram.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = NormalizedSpectrogram.csv; sourceTree = "<group>"; };
+		76608DA225D6AA6E000C6BE5 /* DeepSpeech.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = DeepSpeech.mlmodel; sourceTree = "<group>"; };
+		76608DA725D6AAA2000C6BE5 /* Vector+STFT.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Vector+STFT.swift"; sourceTree = "<group>"; };
+		76608DA825D6AAA2000C6BE5 /* Matrix+vDSP.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Matrix+vDSP.swift"; sourceTree = "<group>"; };
+		76608DA925D6AAA2000C6BE5 /* ComplexMatrix.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ComplexMatrix.swift; sourceTree = "<group>"; };
+		76608DAA25D6AAA2000C6BE5 /* Matrix.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Matrix.swift; sourceTree = "<group>"; };
+		76608DAB25D6AAA2000C6BE5 /* Matrix+DFT.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Matrix+DFT.swift"; sourceTree = "<group>"; };
+		76608DB925D6AAD6000C6BE5 /* ASR.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASR.swift; sourceTree = "<group>"; };
+		76608DC025D6ACF6000C6BE5 /* Matrix+CoreML.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Matrix+CoreML.swift"; sourceTree = "<group>"; };
+		76608DD525D6B770000C6BE5 /* ASRTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASRTests.swift; sourceTree = "<group>"; };
+		76608DE825D6BC1A000C6BE5 /* Vector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Vector.swift; sourceTree = "<group>"; };
+		76608DEF25D6C372000C6BE5 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		76608DF025D6C372000C6BE5 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		76B9BAE725D59339000AADCC /* ASR.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ASR.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		76B9BAEA25D59339000AADCC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		76B9BAEC25D59339000AADCC /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -89,19 +106,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		7640CDEB25D69CA4006993BF /* Numeric */ = {
-			isa = PBXGroup;
-			children = (
-				7640CE1125D69CDA006993BF /* ComplexMatrix.swift */,
-				7640CE0E25D69CDA006993BF /* Matrix.swift */,
-				7640CE1025D69CDA006993BF /* Matrix+DFT.swift */,
-				7640CE1225D69CDA006993BF /* Matrix+vDSP.swift */,
-				7640CE0F25D69CDA006993BF /* Vector+STFT.swift */,
-			);
-			name = Numeric;
-			path = ../../../ios/ASR/Source/Numeric;
-			sourceTree = "<group>";
-		};
 		7640CDF025D69CBB006993BF /* Fixtures */ = {
 			isa = PBXGroup;
 			children = (
@@ -125,9 +129,43 @@
 			path = Numeric;
 			sourceTree = "<group>";
 		};
+		76608DA125D6AA3B000C6BE5 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				76608DA225D6AA6E000C6BE5 /* DeepSpeech.mlmodel */,
+				76608DB925D6AAD6000C6BE5 /* ASR.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		76608DA625D6AAA2000C6BE5 /* Numeric */ = {
+			isa = PBXGroup;
+			children = (
+				76608DA725D6AAA2000C6BE5 /* Vector+STFT.swift */,
+				76608DA825D6AAA2000C6BE5 /* Matrix+vDSP.swift */,
+				76608DA925D6AAA2000C6BE5 /* ComplexMatrix.swift */,
+				76608DAA25D6AAA2000C6BE5 /* Matrix.swift */,
+				76608DAB25D6AAA2000C6BE5 /* Matrix+DFT.swift */,
+				76608DC025D6ACF6000C6BE5 /* Matrix+CoreML.swift */,
+				76608DE825D6BC1A000C6BE5 /* Vector.swift */,
+			);
+			name = Numeric;
+			path = Source/Numeric;
+			sourceTree = SOURCE_ROOT;
+		};
+		76608DD425D6B765000C6BE5 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				76608DD525D6B770000C6BE5 /* ASRTests.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
 		76B9BADE25D59339000AADCC = {
 			isa = PBXGroup;
 			children = (
+				76608DF025D6C372000C6BE5 /* LICENSE */,
+				76608DEF25D6C372000C6BE5 /* README.md */,
 				76B9BAE925D59339000AADCC /* Source */,
 				76B9BB0025D5933B000AADCC /* Tests */,
 				76B9BAE825D59339000AADCC /* Products */,
@@ -146,7 +184,8 @@
 		76B9BAE925D59339000AADCC /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				7640CDEB25D69CA4006993BF /* Numeric */,
+				76608DA625D6AAA2000C6BE5 /* Numeric */,
+				76608DA125D6AA3B000C6BE5 /* Model */,
 				76B9BAEA25D59339000AADCC /* AppDelegate.swift */,
 				76B9BAEC25D59339000AADCC /* SceneDelegate.swift */,
 				76B9BAEE25D59339000AADCC /* ViewController.swift */,
@@ -161,6 +200,7 @@
 		76B9BB0025D5933B000AADCC /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				76608DD425D6B765000C6BE5 /* Model */,
 				7640CDF025D69CBB006993BF /* Fixtures */,
 				7640CDF625D69CBB006993BF /* Numeric */,
 				76B9BB0325D5933B000AADCC /* Info.plist */,
@@ -251,6 +291,7 @@
 				76B9BAF725D5933A000AADCC /* LaunchScreen.storyboard in Resources */,
 				76B9BAF425D5933A000AADCC /* Assets.xcassets in Resources */,
 				76B9BAF225D59339000AADCC /* Main.storyboard in Resources */,
+				76608DBD25D6AB1D000C6BE5 /* librispeech-sample.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -273,14 +314,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				76608DA325D6AA6E000C6BE5 /* DeepSpeech.mlmodel in Sources */,
+				76608DAC25D6AAA2000C6BE5 /* Vector+STFT.swift in Sources */,
 				76B9BAEF25D59339000AADCC /* ViewController.swift in Sources */,
-				7640CE1725D69CDA006993BF /* Matrix+DFT.swift in Sources */,
+				76608DAF25D6AAA2000C6BE5 /* Matrix.swift in Sources */,
 				76B9BAEB25D59339000AADCC /* AppDelegate.swift in Sources */,
-				7640CE1B25D69CDA006993BF /* Matrix+vDSP.swift in Sources */,
-				7640CE1925D69CDA006993BF /* ComplexMatrix.swift in Sources */,
-				7640CE1325D69CDA006993BF /* Matrix.swift in Sources */,
+				76608DAD25D6AAA2000C6BE5 /* Matrix+vDSP.swift in Sources */,
+				76608DAE25D6AAA2000C6BE5 /* ComplexMatrix.swift in Sources */,
+				76608DC125D6ACF6000C6BE5 /* Matrix+CoreML.swift in Sources */,
+				76608DB025D6AAA2000C6BE5 /* Matrix+DFT.swift in Sources */,
+				76608DBA25D6AAD6000C6BE5 /* ASR.swift in Sources */,
+				76608DE925D6BC1A000C6BE5 /* Vector.swift in Sources */,
 				76B9BAED25D59339000AADCC /* SceneDelegate.swift in Sources */,
-				7640CE1525D69CDA006993BF /* Vector+STFT.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -288,15 +333,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				76608DDD25D6B9D0000C6BE5 /* ASRTests.swift in Sources */,
+				76608DC825D6B070000C6BE5 /* Matrix.swift in Sources */,
+				76608DCA25D6B070000C6BE5 /* Matrix+CoreML.swift in Sources */,
+				76608DC925D6B070000C6BE5 /* Matrix+vDSP.swift in Sources */,
+				76608DE525D6BA88000C6BE5 /* DeepSpeech.mlmodel in Sources */,
 				7640CE0525D69CBB006993BF /* MatrixTests.swift in Sources */,
-				7640CE1625D69CDA006993BF /* Vector+STFT.swift in Sources */,
-				7640CE1825D69CDA006993BF /* Matrix+DFT.swift in Sources */,
-				7640CE1A25D69CDA006993BF /* ComplexMatrix.swift in Sources */,
-				7640CE1425D69CDA006993BF /* Matrix.swift in Sources */,
+				76608DC625D6B070000C6BE5 /* Vector+STFT.swift in Sources */,
+				76608DE225D6B9D4000C6BE5 /* ASR.swift in Sources */,
 				7640CE0325D69CBB006993BF /* Fixtures.swift in Sources */,
 				7640CE0925D69CBB006993BF /* VectorTests.swift in Sources */,
+				76608DEC25D6BC1E000C6BE5 /* Vector.swift in Sources */,
+				76608DCB25D6B070000C6BE5 /* ComplexMatrix.swift in Sources */,
 				7640CE0725D69CBB006993BF /* ComplexMatrixTest.swift in Sources */,
-				7640CE1C25D69CDA006993BF /* Matrix+vDSP.swift in Sources */,
+				76608DC725D6B070000C6BE5 /* Matrix+DFT.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

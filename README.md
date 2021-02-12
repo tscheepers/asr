@@ -16,7 +16,8 @@ Training:
 Inference:
 - [x] Write custom Short-Time Fourier Transform for iPhone [_[code](Source/Numeric/Vector+STFT.swift)_]
 - [x] Test our custom STFT with [librosa](https://librosa.org/) reference
-- [ ] Load pretrained [deepspeech.pytorch](https://github.com/SeanNaren/deepspeech.pytorch) using coremltools
+- [x] Load pretrained [deepspeech.pytorch](https://github.com/SeanNaren/deepspeech.pytorch) using coremltools
+- [x] Implement greedy decoding in Swift
 - [ ] Implement CTC Beam Search decoder in Swift
 - [ ] Load custom model using coremltools into the iPhone codebase
 - [ ] Augment decoder with Transformer based language model
