@@ -7,6 +7,7 @@ struct Matrix<T> {
     var shape: (height: Int, width: Int)
     var height: Int { return shape.0 }
     var width: Int { return shape.1 }
+    var count: Int { return width * height }
 
     var flat: [T]
 

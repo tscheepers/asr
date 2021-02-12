@@ -34,6 +34,17 @@ class VectorTests: XCTestCase {
     }
 
     func testSTFT() {
+        let input = Fixtures.libriSpeechSample
+        XCTAssertEqual(input.count, 191280)
+
+        let result = input.shortTimeFourierTransform(nFFT: 320, hopLength: 160)
+        XCTAssertEqual(result.width, 161)
+        XCTAssertEqual(result.height, 1196)
+
+        ASRAssertEqual(result, Fixtures.stftOutput, accuracy: 0.01)
+    }
+
+    func testSTFTDouble() {
         let input = Fixtures.libriSpeechSample.map { Double($0) }
         XCTAssertEqual(input.count, 191280)
 
@@ -41,7 +52,10 @@ class VectorTests: XCTestCase {
         XCTAssertEqual(result.width, 161)
         XCTAssertEqual(result.height, 1196)
 
-        ASRAssertEqual(result, Fixtures.stftTestOutput, accuracy: 0.01)
+        let expected: [[Complex<Double>]] = Fixtures.stftOutput.map { $0.map { Complex<Double>(Double($0.real), Double($0.imag)) } }
+
+        ASRAssertEqual(result, expected, accuracy: 0.01)
     }
+
 }
 

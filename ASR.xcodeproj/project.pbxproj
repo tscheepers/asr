@@ -7,25 +7,31 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7640CDFB25D69CBB006993BF /* STFTOutput.csv in Resources */ = {isa = PBXBuildFile; fileRef = 7640CDF125D69CBB006993BF /* STFTOutput.csv */; };
+		7640CDFD25D69CBB006993BF /* librispeech-sample.wav in Resources */ = {isa = PBXBuildFile; fileRef = 7640CDF225D69CBB006993BF /* librispeech-sample.wav */; };
+		7640CDFF25D69CBB006993BF /* MagnitudesOutput.csv in Resources */ = {isa = PBXBuildFile; fileRef = 7640CDF325D69CBB006993BF /* MagnitudesOutput.csv */; };
+		7640CE0125D69CBB006993BF /* Log1POutput.csv in Resources */ = {isa = PBXBuildFile; fileRef = 7640CDF425D69CBB006993BF /* Log1POutput.csv */; };
+		7640CE0325D69CBB006993BF /* Fixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CDF525D69CBB006993BF /* Fixtures.swift */; };
+		7640CE0525D69CBB006993BF /* MatrixTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CDF725D69CBB006993BF /* MatrixTests.swift */; };
+		7640CE0725D69CBB006993BF /* ComplexMatrixTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CDF825D69CBB006993BF /* ComplexMatrixTest.swift */; };
+		7640CE0925D69CBB006993BF /* VectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CDF925D69CBB006993BF /* VectorTests.swift */; };
+		7640CE1325D69CDA006993BF /* Matrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CE0E25D69CDA006993BF /* Matrix.swift */; };
+		7640CE1425D69CDA006993BF /* Matrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CE0E25D69CDA006993BF /* Matrix.swift */; };
+		7640CE1525D69CDA006993BF /* Vector+STFT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CE0F25D69CDA006993BF /* Vector+STFT.swift */; };
+		7640CE1625D69CDA006993BF /* Vector+STFT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CE0F25D69CDA006993BF /* Vector+STFT.swift */; };
+		7640CE1725D69CDA006993BF /* Matrix+DFT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CE1025D69CDA006993BF /* Matrix+DFT.swift */; };
+		7640CE1825D69CDA006993BF /* Matrix+DFT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CE1025D69CDA006993BF /* Matrix+DFT.swift */; };
+		7640CE1925D69CDA006993BF /* ComplexMatrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CE1125D69CDA006993BF /* ComplexMatrix.swift */; };
+		7640CE1A25D69CDA006993BF /* ComplexMatrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CE1125D69CDA006993BF /* ComplexMatrix.swift */; };
+		7640CE1B25D69CDA006993BF /* Matrix+vDSP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CE1225D69CDA006993BF /* Matrix+vDSP.swift */; };
+		7640CE1C25D69CDA006993BF /* Matrix+vDSP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640CE1225D69CDA006993BF /* Matrix+vDSP.swift */; };
+		7640CE2625D6A5D9006993BF /* NormalizedSpectrogram.csv in Resources */ = {isa = PBXBuildFile; fileRef = 7640CE2525D6A5D9006993BF /* NormalizedSpectrogram.csv */; };
 		76B9BAEB25D59339000AADCC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B9BAEA25D59339000AADCC /* AppDelegate.swift */; };
 		76B9BAED25D59339000AADCC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B9BAEC25D59339000AADCC /* SceneDelegate.swift */; };
 		76B9BAEF25D59339000AADCC /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B9BAEE25D59339000AADCC /* ViewController.swift */; };
 		76B9BAF225D59339000AADCC /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 76B9BAF025D59339000AADCC /* Main.storyboard */; };
 		76B9BAF425D5933A000AADCC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 76B9BAF325D5933A000AADCC /* Assets.xcassets */; };
 		76B9BAF725D5933A000AADCC /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 76B9BAF525D5933A000AADCC /* LaunchScreen.storyboard */; };
-		76B9BB4225D593A4000AADCC /* Vector+STFT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B9BB3E25D593A4000AADCC /* Vector+STFT.swift */; };
-		76B9BB4325D593A4000AADCC /* ComplexMatrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B9BB3F25D593A4000AADCC /* ComplexMatrix.swift */; };
-		76B9BB4425D593A4000AADCC /* Matrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B9BB4025D593A4000AADCC /* Matrix.swift */; };
-		76B9BB4525D593A4000AADCC /* Matrix+DFT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B9BB4125D593A4000AADCC /* Matrix+DFT.swift */; };
-		76B9BB5025D593C8000AADCC /* MatrixTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B9BB4925D593C8000AADCC /* MatrixTests.swift */; };
-		76B9BB5225D593C8000AADCC /* VectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B9BB4A25D593C8000AADCC /* VectorTests.swift */; };
-		76B9BB5425D593C8000AADCC /* STFTOutput.csv in Resources */ = {isa = PBXBuildFile; fileRef = 76B9BB4C25D593C8000AADCC /* STFTOutput.csv */; };
-		76B9BB5625D593C8000AADCC /* librispeech-sample.wav in Resources */ = {isa = PBXBuildFile; fileRef = 76B9BB4D25D593C8000AADCC /* librispeech-sample.wav */; };
-		76B9BB5825D593C8000AADCC /* Fixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B9BB4E25D593C8000AADCC /* Fixtures.swift */; };
-		76B9BB6925D593E4000AADCC /* Matrix+DFT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B9BB4125D593A4000AADCC /* Matrix+DFT.swift */; };
-		76B9BB6A25D593E4000AADCC /* ComplexMatrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B9BB3F25D593A4000AADCC /* ComplexMatrix.swift */; };
-		76B9BB6B25D593E4000AADCC /* Matrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B9BB4025D593A4000AADCC /* Matrix.swift */; };
-		76B9BB6C25D593E4000AADCC /* Vector+STFT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B9BB3E25D593A4000AADCC /* Vector+STFT.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,6 +45,20 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7640CDF125D69CBB006993BF /* STFTOutput.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = STFTOutput.csv; sourceTree = "<group>"; };
+		7640CDF225D69CBB006993BF /* librispeech-sample.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "librispeech-sample.wav"; sourceTree = "<group>"; };
+		7640CDF325D69CBB006993BF /* MagnitudesOutput.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = MagnitudesOutput.csv; sourceTree = "<group>"; };
+		7640CDF425D69CBB006993BF /* Log1POutput.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Log1POutput.csv; sourceTree = "<group>"; };
+		7640CDF525D69CBB006993BF /* Fixtures.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Fixtures.swift; sourceTree = "<group>"; };
+		7640CDF725D69CBB006993BF /* MatrixTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MatrixTests.swift; sourceTree = "<group>"; };
+		7640CDF825D69CBB006993BF /* ComplexMatrixTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ComplexMatrixTest.swift; sourceTree = "<group>"; };
+		7640CDF925D69CBB006993BF /* VectorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VectorTests.swift; sourceTree = "<group>"; };
+		7640CE0E25D69CDA006993BF /* Matrix.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Matrix.swift; sourceTree = "<group>"; };
+		7640CE0F25D69CDA006993BF /* Vector+STFT.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Vector+STFT.swift"; sourceTree = "<group>"; };
+		7640CE1025D69CDA006993BF /* Matrix+DFT.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Matrix+DFT.swift"; sourceTree = "<group>"; };
+		7640CE1125D69CDA006993BF /* ComplexMatrix.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ComplexMatrix.swift; sourceTree = "<group>"; };
+		7640CE1225D69CDA006993BF /* Matrix+vDSP.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Matrix+vDSP.swift"; sourceTree = "<group>"; };
+		7640CE2525D6A5D9006993BF /* NormalizedSpectrogram.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = NormalizedSpectrogram.csv; sourceTree = "<group>"; };
 		76B9BAE725D59339000AADCC /* ASR.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ASR.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		76B9BAEA25D59339000AADCC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		76B9BAEC25D59339000AADCC /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -49,15 +69,6 @@
 		76B9BAF825D5933A000AADCC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		76B9BAFD25D5933B000AADCC /* ASRTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ASRTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		76B9BB0325D5933B000AADCC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		76B9BB3E25D593A4000AADCC /* Vector+STFT.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Vector+STFT.swift"; sourceTree = "<group>"; };
-		76B9BB3F25D593A4000AADCC /* ComplexMatrix.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ComplexMatrix.swift; sourceTree = "<group>"; };
-		76B9BB4025D593A4000AADCC /* Matrix.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Matrix.swift; sourceTree = "<group>"; };
-		76B9BB4125D593A4000AADCC /* Matrix+DFT.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Matrix+DFT.swift"; sourceTree = "<group>"; };
-		76B9BB4925D593C8000AADCC /* MatrixTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MatrixTests.swift; sourceTree = "<group>"; };
-		76B9BB4A25D593C8000AADCC /* VectorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VectorTests.swift; sourceTree = "<group>"; };
-		76B9BB4C25D593C8000AADCC /* STFTOutput.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = STFTOutput.csv; sourceTree = "<group>"; };
-		76B9BB4D25D593C8000AADCC /* librispeech-sample.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "librispeech-sample.wav"; sourceTree = "<group>"; };
-		76B9BB4E25D593C8000AADCC /* Fixtures.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Fixtures.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,6 +89,42 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		7640CDEB25D69CA4006993BF /* Numeric */ = {
+			isa = PBXGroup;
+			children = (
+				7640CE1125D69CDA006993BF /* ComplexMatrix.swift */,
+				7640CE0E25D69CDA006993BF /* Matrix.swift */,
+				7640CE1025D69CDA006993BF /* Matrix+DFT.swift */,
+				7640CE1225D69CDA006993BF /* Matrix+vDSP.swift */,
+				7640CE0F25D69CDA006993BF /* Vector+STFT.swift */,
+			);
+			name = Numeric;
+			path = ../../../ios/ASR/Source/Numeric;
+			sourceTree = "<group>";
+		};
+		7640CDF025D69CBB006993BF /* Fixtures */ = {
+			isa = PBXGroup;
+			children = (
+				7640CDF125D69CBB006993BF /* STFTOutput.csv */,
+				7640CDF225D69CBB006993BF /* librispeech-sample.wav */,
+				7640CDF325D69CBB006993BF /* MagnitudesOutput.csv */,
+				7640CDF425D69CBB006993BF /* Log1POutput.csv */,
+				7640CDF525D69CBB006993BF /* Fixtures.swift */,
+				7640CE2525D6A5D9006993BF /* NormalizedSpectrogram.csv */,
+			);
+			path = Fixtures;
+			sourceTree = "<group>";
+		};
+		7640CDF625D69CBB006993BF /* Numeric */ = {
+			isa = PBXGroup;
+			children = (
+				7640CDF725D69CBB006993BF /* MatrixTests.swift */,
+				7640CDF825D69CBB006993BF /* ComplexMatrixTest.swift */,
+				7640CDF925D69CBB006993BF /* VectorTests.swift */,
+			);
+			path = Numeric;
+			sourceTree = "<group>";
+		};
 		76B9BADE25D59339000AADCC = {
 			isa = PBXGroup;
 			children = (
@@ -99,7 +146,7 @@
 		76B9BAE925D59339000AADCC /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				76B9BB3D25D593A4000AADCC /* Numeric */,
+				7640CDEB25D69CA4006993BF /* Numeric */,
 				76B9BAEA25D59339000AADCC /* AppDelegate.swift */,
 				76B9BAEC25D59339000AADCC /* SceneDelegate.swift */,
 				76B9BAEE25D59339000AADCC /* ViewController.swift */,
@@ -114,41 +161,11 @@
 		76B9BB0025D5933B000AADCC /* Tests */ = {
 			isa = PBXGroup;
 			children = (
-				76B9BB4B25D593C8000AADCC /* Fixtures */,
-				76B9BB4825D593C8000AADCC /* Numeric */,
+				7640CDF025D69CBB006993BF /* Fixtures */,
+				7640CDF625D69CBB006993BF /* Numeric */,
 				76B9BB0325D5933B000AADCC /* Info.plist */,
 			);
 			path = Tests;
-			sourceTree = "<group>";
-		};
-		76B9BB3D25D593A4000AADCC /* Numeric */ = {
-			isa = PBXGroup;
-			children = (
-				76B9BB3E25D593A4000AADCC /* Vector+STFT.swift */,
-				76B9BB3F25D593A4000AADCC /* ComplexMatrix.swift */,
-				76B9BB4025D593A4000AADCC /* Matrix.swift */,
-				76B9BB4125D593A4000AADCC /* Matrix+DFT.swift */,
-			);
-			path = Numeric;
-			sourceTree = "<group>";
-		};
-		76B9BB4825D593C8000AADCC /* Numeric */ = {
-			isa = PBXGroup;
-			children = (
-				76B9BB4925D593C8000AADCC /* MatrixTests.swift */,
-				76B9BB4A25D593C8000AADCC /* VectorTests.swift */,
-			);
-			path = Numeric;
-			sourceTree = "<group>";
-		};
-		76B9BB4B25D593C8000AADCC /* Fixtures */ = {
-			isa = PBXGroup;
-			children = (
-				76B9BB4C25D593C8000AADCC /* STFTOutput.csv */,
-				76B9BB4D25D593C8000AADCC /* librispeech-sample.wav */,
-				76B9BB4E25D593C8000AADCC /* Fixtures.swift */,
-			);
-			path = Fixtures;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -241,8 +258,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				76B9BB5425D593C8000AADCC /* STFTOutput.csv in Resources */,
-				76B9BB5625D593C8000AADCC /* librispeech-sample.wav in Resources */,
+				7640CDFB25D69CBB006993BF /* STFTOutput.csv in Resources */,
+				7640CE0125D69CBB006993BF /* Log1POutput.csv in Resources */,
+				7640CE2625D6A5D9006993BF /* NormalizedSpectrogram.csv in Resources */,
+				7640CDFD25D69CBB006993BF /* librispeech-sample.wav in Resources */,
+				7640CDFF25D69CBB006993BF /* MagnitudesOutput.csv in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -254,12 +274,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				76B9BAEF25D59339000AADCC /* ViewController.swift in Sources */,
+				7640CE1725D69CDA006993BF /* Matrix+DFT.swift in Sources */,
 				76B9BAEB25D59339000AADCC /* AppDelegate.swift in Sources */,
-				76B9BB4525D593A4000AADCC /* Matrix+DFT.swift in Sources */,
-				76B9BB4425D593A4000AADCC /* Matrix.swift in Sources */,
-				76B9BB4325D593A4000AADCC /* ComplexMatrix.swift in Sources */,
+				7640CE1B25D69CDA006993BF /* Matrix+vDSP.swift in Sources */,
+				7640CE1925D69CDA006993BF /* ComplexMatrix.swift in Sources */,
+				7640CE1325D69CDA006993BF /* Matrix.swift in Sources */,
 				76B9BAED25D59339000AADCC /* SceneDelegate.swift in Sources */,
-				76B9BB4225D593A4000AADCC /* Vector+STFT.swift in Sources */,
+				7640CE1525D69CDA006993BF /* Vector+STFT.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -267,13 +288,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				76B9BB5025D593C8000AADCC /* MatrixTests.swift in Sources */,
-				76B9BB6925D593E4000AADCC /* Matrix+DFT.swift in Sources */,
-				76B9BB6B25D593E4000AADCC /* Matrix.swift in Sources */,
-				76B9BB6C25D593E4000AADCC /* Vector+STFT.swift in Sources */,
-				76B9BB6A25D593E4000AADCC /* ComplexMatrix.swift in Sources */,
-				76B9BB5225D593C8000AADCC /* VectorTests.swift in Sources */,
-				76B9BB5825D593C8000AADCC /* Fixtures.swift in Sources */,
+				7640CE0525D69CBB006993BF /* MatrixTests.swift in Sources */,
+				7640CE1625D69CDA006993BF /* Vector+STFT.swift in Sources */,
+				7640CE1825D69CDA006993BF /* Matrix+DFT.swift in Sources */,
+				7640CE1A25D69CDA006993BF /* ComplexMatrix.swift in Sources */,
+				7640CE1425D69CDA006993BF /* Matrix.swift in Sources */,
+				7640CE0325D69CBB006993BF /* Fixtures.swift in Sources */,
+				7640CE0925D69CBB006993BF /* VectorTests.swift in Sources */,
+				7640CE0725D69CBB006993BF /* ComplexMatrixTest.swift in Sources */,
+				7640CE1C25D69CDA006993BF /* Matrix+vDSP.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

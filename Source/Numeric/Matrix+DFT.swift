@@ -64,7 +64,7 @@ fileprivate func discreteFourierTransform(reals: [Float], imags: [Float]? = nil,
     // positive-frequency terms, and the negative-frequency terms are therefore redundant.
     if imags == nil {
         realsOut = Array(realsOut[0..<reals.count/2+1])
-        imagsOut = Array(realsOut[0..<reals.count/2+1])
+        imagsOut = Array(imagsOut[0..<reals.count/2+1])
     }
 
     return (realsOut, imagsOut, dftSetup)
