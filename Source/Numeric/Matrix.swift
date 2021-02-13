@@ -17,6 +17,16 @@ struct Matrix<T> {
         self.flat = flat
     }
 
+    /// Switch the axis
+    func transposed() -> Matrix<T> {
+        let flat = (0..<count).map { idx -> T in
+            let col = idx % height
+            let row = idx / height
+            return self[col, row]
+        }
+        return Matrix(shape: (width, height), flat: flat)
+    }
+
     /// Access the matrix using `matrix[x,y]`
     subscript(row: Int, col: Int) -> T {
         get {
@@ -78,20 +88,6 @@ extension Matrix where T : FloatingPoint {
     static func zeros(shape: (height: Int, width: Int)) -> Matrix<T> {
         let flat = [T](repeating: T.zero, count: shape.height * shape.width)
         return Matrix<T>(shape: shape, flat: flat)
-    }
-
-    /// Switch the axis
-    func transposed() -> Matrix<T> {
-        var new = Matrix<T>.zeros(shape: (width, height))
-
-        // TODO: Improve
-        for i in 0..<height {
-            for j in 0..<width {
-                new[j,i] = self[i,j]
-            }
-        }
-
-        return new
     }
 
     /// Argmax for each row

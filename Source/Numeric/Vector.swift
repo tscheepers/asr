@@ -14,6 +14,12 @@ extension Array where Element: Comparable {
 }
 
 extension Array {
+
+    /// Broadcasts the array to a matrix
+    func broadcast(size: Int) -> Matrix<Element> {
+        return Matrix<Element>(shape: (height: size, width: self.count), flat: self.repeated(count: size))
+    }
+
     /// Creates a new Array by repeating an existing array
     init(repeating: [Element], count: Int) {
         self.init([[Element]](repeating: repeating, count: count).flatMap{$0})

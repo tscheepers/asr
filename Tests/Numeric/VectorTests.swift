@@ -33,6 +33,15 @@ class VectorTests: XCTestCase {
         }
     }
 
+    func testHammingWindow() {
+        let result = [Float].hammingWindow(windowLength: 9)
+        let expected: [Float] = [0.08, 0.21, 0.54, 0.87, 1.0, 0.87, 0.54, 0.21, 0.08]
+
+        for i in 0..<result.count {
+            XCTAssertEqual(result[i], expected[i], accuracy: 0.01)
+        }
+    }
+
     func testSTFT() {
         let input = Fixtures.libriSpeechSample
         XCTAssertEqual(input.count, 191280)
@@ -55,6 +64,17 @@ class VectorTests: XCTestCase {
         let expected: [[Complex<Double>]] = Fixtures.stftOutput.map { $0.map { Complex<Double>(Double($0.real), Double($0.imag)) } }
 
         ASRAssertEqual(result, expected, accuracy: 0.01)
+    }
+
+    func testSTFTHamming() {
+        let input = Fixtures.libriSpeechSample
+        XCTAssertEqual(input.count, 191280)
+
+        let result = input.shortTimeFourierTransform(nFFT: 320, hopLength: 160, window: .hamming)
+        XCTAssertEqual(result.width, 161)
+        XCTAssertEqual(result.height, 1196)
+
+        ASRAssertEqual(result, Fixtures.stftHammingOutput, accuracy: 0.01)
     }
 
 }

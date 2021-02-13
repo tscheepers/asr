@@ -182,3 +182,6 @@ xcuserdata/
 ## Playgrounds
 timeline.xctimeline
 playground.xcworkspace
+
+## Models
+*.mlmodel

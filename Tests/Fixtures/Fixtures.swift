@@ -6,8 +6,11 @@ class Fixtures {
     /// An audiofile from the LibriSpeech dataset
     static let libriSpeechSample : [Float] = Fixtures.loadAudioWave(named: "librispeech-sample")
 
-    /// Generated output to test STFT (generated with librosa)
+    /// Generated output to test STFT (generated with librosa and the hann window function)
     static let stftOutput : [[Complex<Float>]] = Fixtures.loadComplexCSV(named: "STFTOutput")
+
+    /// Generated output to test STFT (generated with librosa and the hamming window function)
+    static let stftHammingOutput : [[Complex<Float>]] = Fixtures.loadComplexCSV(named: "STFTHammingOutput")
 
     /// Generated output to test magnitudes (generated with librosa)
     static let magnitudesOutput : [[Float]] = Fixtures.loadCSV(named: "MagnitudesOutput")

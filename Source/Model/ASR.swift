@@ -20,7 +20,7 @@ class ASR {
     /// Convert wave to spectrogram
     func convertToSpectrogram(wave: [Float]) -> Matrix<Float>
     {
-        let magnitude = wave.shortTimeFourierTransform(nFFT: 320, hopLength: 160).magnitude()
+        let magnitude = wave.shortTimeFourierTransform(nFFT: 320, hopLength: 160, window: .hamming).magnitude()
         let sepectrogram = log(1 + magnitude)
         let normalized = (sepectrogram - sepectrogram.mean) / sepectrogram.std
         return normalized

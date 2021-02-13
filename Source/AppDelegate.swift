@@ -1,10 +1,3 @@
-//
-//  AppDelegate.swift
-//  ASR
-//
-//  Created by Thijs on 11/02/2021.
-//
-
 import UIKit
 
 @main
