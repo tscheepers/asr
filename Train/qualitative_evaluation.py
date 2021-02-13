@@ -16,19 +16,15 @@ class QualitativeEvaluation(pytorch_lightning.callbacks.Callback):
     def setup(self, trainer, model, stage: str):
         self.string_processor = model.string_processor
 
-        self.tiny_dataset = LibriSpeechDataset(
-            model.string_processor,
-            sample_rate=model.sample_rate,
-            max_timesteps=model.max_timesteps,
-            sample_limit=self.n_samples
-        )
+        self.tiny_dataset = model.val_dataset
 
         self.beam_search = CTCBeamDecoder(self.string_processor.chars, beam_width=100,
-                                          blank_id=self.string_processor.blank_id, log_probs_input=True)
+                                          blank_id=self.string_processor.blank_id)
 
     def on_validation_epoch_end(self, trainer, model):
         with torch.no_grad():
-            for (features, labels, n_features, _) in self.tiny_dataset:
+            for i in range(self.n_samples):
+                (features, labels, n_features, _) = self.tiny_dataset[i]
 
                 features = features.unsqueeze(0).to(model.device)
                 y, _ = model(features, torch.IntTensor([n_features]))

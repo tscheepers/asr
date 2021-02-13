@@ -1,10 +1,8 @@
-import math
-
+import librosa
 import torch
-import torchaudio
 import re
-import warnings
-
+import numpy as np
+from functools import lru_cache
 from typing import List
 
 
@@ -49,7 +47,7 @@ class StringProcessor:
 class Dataset(torch.utils.data.Dataset):
 
     def __init__(self, samples: List[Sample], string_processor: StringProcessor, sample_rate=16000, window_size=0.02,
-                 window_stride=0.01, n_features=64, max_timesteps=3000):
+                 window_stride=0.01, max_timesteps=3000):
         super(Dataset, self).__init__()
 
         self.samples = samples
@@ -57,14 +55,6 @@ class Dataset(torch.utils.data.Dataset):
         self.sample_rate = sample_rate
         self.window_size = window_size
         self.window_stride = window_stride
-
-        self.audio_transform = torchaudio.transforms.MelSpectrogram(
-            sample_rate=sample_rate,
-            n_mels=int(math.floor((self.sample_rate * self.window_size) / 2) + 1),
-            n_fft=int(self.sample_rate * self.window_size),
-            win_length=int(self.sample_rate * self.window_size),
-            hop_length=int(self.sample_rate * self.window_stride)
-        )
 
         self.string_processor = string_processor
 
@@ -74,7 +64,10 @@ class Dataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.item()
+        return self._getitem(idx)
 
+    @lru_cache()
+    def _getitem(self, idx):
         sample = self.samples[idx]
 
         labels = torch.Tensor(self.string_processor.str_to_labels(sample.sentence))
@@ -83,50 +76,47 @@ class Dataset(torch.utils.data.Dataset):
         if n_labels == 0:
             raise Exception('Zero labels')
 
-        waveform, sample_rate = torchaudio.load(sample.path)
+        wave, sample_rate = librosa.load(sample.path, sr=self.sample_rate, mono=True)
 
-        if sample_rate < self.sample_rate:
+        if sample_rate != self.sample_rate:
             raise Exception('Sample rates mismatch %d < %d' % (sample_rate, self.sample_rate))
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            features = self.audio_transform(waveform)
+        stft = librosa.stft(wave,
+                            n_fft=int(self.sample_rate * self.window_size),
+                            hop_length=int(self.sample_rate * self.window_stride),
+                            win_length=int(self.sample_rate * self.window_size),
+                            window='hamming')
+        magnitudes, _ = librosa.magphase(stft)
+        spectrogram = np.log1p(magnitudes)
+        spectrogram = (spectrogram - spectrogram.mean()) / spectrogram.std()
+        spectrogram = torch.Tensor(spectrogram)
+        n_timesteps = spectrogram.shape[-1]
 
-        if features.shape[0] > 1:
-            raise Exception('Dual channel audio')
+        if n_timesteps > self.max_timesteps:
+            raise Exception('Spectrogram has too many timesteps, size %s' % n_timesteps)
 
-        features = features.reshape((features.shape[1], features.shape[2]))
-        n_features = features.shape[-1]
+        if n_timesteps < n_labels:
+            raise Exception('Less timesteps than labels')
 
-        if n_features > self.max_timesteps:
-            raise Exception('Spectrogram to big, size %s' % n_features)
-
-        if n_features < n_labels:
-            raise Exception('Less MFCCs than labels')
-
-        return features, labels, n_features, n_labels
+        return spectrogram, labels, n_timesteps, n_labels
 
 
 class CommonVoiceDataset(Dataset):
-    def __init__(self, string_processor: StringProcessor, filename='dev.tsv', sample_rate=16000, n_features=64,
-                 max_timesteps=3000, window_size=0.02, window_stride=0.01, sample_limit=None):
+    def __init__(self, string_processor: StringProcessor, filename='dev.tsv', sample_rate=16000,
+                 max_timesteps=3000, window_size=0.02, window_stride=0.01):
 
         samples = []
         with open(CommonVoiceDataset.data_dir(filename), "r") as f:
             f.readline()  # Skip the first line
-            lines = f.readlines()
-            if sample_limit is not None:
-                lines = lines[:sample_limit]
-
-            for line in lines:
+            for line in f.readlines():
                 split = line.split('\t')
                 path = CommonVoiceDataset.data_dir('clips', split[1])
                 sentence = split[2]
                 samples.append(Sample(sentence, path))
 
         super(CommonVoiceDataset, self).__init__(samples, string_processor, sample_rate=sample_rate,
-                                                 n_features=n_features, max_timesteps=max_timesteps,
-                                                 window_size=window_size, window_stride=window_stride)
+                                                 max_timesteps=max_timesteps, window_size=window_size,
+                                                 window_stride=window_stride)
 
     @staticmethod
     def data_dir(*args, root="/home/thijs/Datasets/cv-corpus-6.1-2020-12-11/nl"):
@@ -138,24 +128,20 @@ class LibriSpeechDataset(Dataset):
                  filepath='/home/thijs/Datasets/LibriSpeech/dev_transcriptions.tsv',
                  sample_rate=16000, n_features=64,
                  max_timesteps=3000, window_size=0.02,
-                 window_stride=0.01, sample_limit=None):
+                 window_stride=0.01):
 
         samples = []
         with open(filepath, "r") as f:
             f.readline()  # Skip the first line
-            lines = f.readlines()
-            if sample_limit is not None:
-                lines = lines[:sample_limit]
-
-            for line in lines:
+            for line in f.readlines():
                 split = line.split('\t')
                 path = split[0]
                 sentence = split[2]
                 samples.append(Sample(sentence, path))
 
         super(LibriSpeechDataset, self).__init__(samples, string_processor, sample_rate=sample_rate,
-                                                 n_features=n_features, max_timesteps=max_timesteps,
-                                                 window_size=window_size, window_stride=window_stride)
+                                                 max_timesteps=max_timesteps, window_size=window_size,
+                                                 window_stride=window_stride)
 
 
 def pad_dataset(dataset):
