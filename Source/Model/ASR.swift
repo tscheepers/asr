@@ -4,7 +4,7 @@ import CoreML
 
 class ASR {
 
-    let model: DeepSpeech = DeepSpeech()
+    let model: ASRModel = ASRModel()
     let labels = ["_", "'", "A", "B", "C", "D", "E",
                   "F", "G", "H", "I", "J", "K", "L",
                   "M", "N", "O", "P", "Q", "R", "S",
@@ -28,9 +28,25 @@ class ASR {
 
     /// Call the model using CoreML
     func inference(spectrogram: Matrix<Float>) -> Matrix<Float> {
-        let spectrogramForCoreML = spectrogram.transposed().createMLMultiArray(prependDimensions: 2)
-        let output = try! model.predictions(inputs: [DeepSpeechInput(inputs: spectrogramForCoreML)])
-        return output[0]._348.toFloatMatrix()
+
+        let frames = 50
+        let steps = spectrogram.height / frames
+        var hn = Matrix<Float>.zeros(shape: (5, 1024))
+        var cn = Matrix<Float>.zeros(shape: (5, 1024))
+        var flat: [Float] = []
+
+        for i in 0..<steps {
+            let s = Matrix<Float>(shape: (frames, 161), flat: Array(spectrogram.flat[i*161*frames..<(i+1)*161*frames])).transposed()
+
+            let output = try! model.predictions(inputs: [ASRModelInput(spectrogram: s.createMLMultiArray(), h0: hn.createMLMultiArray(), c0: cn.createMLMultiArray())])
+
+            let outputMatrix = output[0]._385.toFloatMatrix()
+            flat += outputMatrix.flat
+            hn = output[0]._387.toFloatMatrix()
+            cn = output[0]._389.toFloatMatrix()
+        }
+
+        return Matrix<Float>(shape: (steps*(frames/2), 29), flat: flat)
     }
 
     /// Decode from probabilities per time frame

@@ -5,6 +5,8 @@ import numpy as np
 from functools import lru_cache
 from typing import List
 
+from config import Config
+
 
 class Sample:
     def __init__(self, sentence: str, path: str):
@@ -46,16 +48,14 @@ class StringProcessor:
 
 class Dataset(torch.utils.data.Dataset):
 
-    def __init__(self, samples: List[Sample], string_processor: StringProcessor, sample_rate=16000, window_size=0.02,
-                 window_stride=0.01, max_timesteps=3000):
+    def __init__(self, samples: List[Sample], string_processor: StringProcessor, config: Config):
         super(Dataset, self).__init__()
 
         self.samples = samples
-        self.max_timesteps = max_timesteps
-        self.sample_rate = sample_rate
-        self.window_size = window_size
-        self.window_stride = window_stride
-
+        self.max_timesteps = config.max_timesteps
+        self.sample_rate = config.sample_rate
+        self.window_size = config.window_size
+        self.window_stride = config.window_stride
         self.string_processor = string_processor
 
     def __len__(self):
@@ -102,9 +102,7 @@ class Dataset(torch.utils.data.Dataset):
 
 
 class CommonVoiceDataset(Dataset):
-    def __init__(self, string_processor: StringProcessor, filename='dev.tsv', sample_rate=16000,
-                 max_timesteps=3000, window_size=0.02, window_stride=0.01):
-
+    def __init__(self, string_processor: StringProcessor, config: Config, filename='dev.tsv', ):
         samples = []
         with open(CommonVoiceDataset.data_dir(filename), "r") as f:
             f.readline()  # Skip the first line
@@ -114,9 +112,7 @@ class CommonVoiceDataset(Dataset):
                 sentence = split[2]
                 samples.append(Sample(sentence, path))
 
-        super(CommonVoiceDataset, self).__init__(samples, string_processor, sample_rate=sample_rate,
-                                                 max_timesteps=max_timesteps, window_size=window_size,
-                                                 window_stride=window_stride)
+        super(CommonVoiceDataset, self).__init__(samples, string_processor, config)
 
     @staticmethod
     def data_dir(*args, root="/home/thijs/Datasets/cv-corpus-6.1-2020-12-11/nl"):
@@ -124,12 +120,8 @@ class CommonVoiceDataset(Dataset):
 
 
 class LibriSpeechDataset(Dataset):
-    def __init__(self, string_processor: StringProcessor,
-                 filepath='/home/thijs/Datasets/LibriSpeech/dev_transcriptions.tsv',
-                 sample_rate=16000, n_features=64,
-                 max_timesteps=3000, window_size=0.02,
-                 window_stride=0.01):
-
+    def __init__(self, string_processor: StringProcessor, config: Config,
+                 filepath='/home/thijs/Datasets/LibriSpeech/dev_transcriptions.tsv'):
         samples = []
         with open(filepath, "r") as f:
             f.readline()  # Skip the first line
@@ -139,26 +131,25 @@ class LibriSpeechDataset(Dataset):
                 sentence = split[2]
                 samples.append(Sample(sentence, path))
 
-        super(LibriSpeechDataset, self).__init__(samples, string_processor, sample_rate=sample_rate,
-                                                 max_timesteps=max_timesteps, window_size=window_size,
-                                                 window_stride=window_stride)
+        super(LibriSpeechDataset, self).__init__(samples, string_processor, config)
 
 
-def pad_dataset(dataset):
-    all_features = []
-    all_labels = []
-    all_n_features = []
-    all_n_labels = []
+def collate_dataset(dataset):
+    spectrograms = []
+    labels = []
+    n_timesteps = []
+    n_labels = []
 
-    for (features, labels, n_features, n_labels) in dataset:
-        all_features.append(features.transpose(0, 1))
-        all_labels.append(labels)
-        all_n_features.append(n_features)
-        all_n_labels.append(n_labels)
+    # Order by number of timesteps descending
+    for (ss, ls, s, l) in sorted((-ss, -ls, s, l) for (s, l, ss, ls) in dataset):
+        spectrograms.append(s.transpose(0, 1))
+        labels.append(l)
+        n_timesteps.append(-ss)
+        n_labels.append(-ls)
 
-    all_features = torch.nn.utils.rnn.pad_sequence(all_features, batch_first=True).transpose(1, 2)
-    all_labels = torch.nn.utils.rnn.pad_sequence(all_labels, batch_first=True)
-    all_n_features = torch.IntTensor(all_n_features)
-    all_n_labels = torch.IntTensor(all_n_labels)
+    spectrograms = torch.nn.utils.rnn.pad_sequence(spectrograms, batch_first=True).transpose(1, 2)  # batch, spectrogram, time
+    labels = torch.nn.utils.rnn.pad_sequence(labels, batch_first=True)  # batch, time
+    n_timesteps = torch.IntTensor(n_timesteps)  # batch
+    n_labels = torch.IntTensor(n_labels)  # batch
 
-    return all_features, all_labels, all_n_features, all_n_labels
+    return spectrograms, labels, n_timesteps, n_labels

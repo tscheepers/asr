@@ -9,20 +9,22 @@ class MaskConv(torch.nn.Module):
         """
         Adds padding to the output of the module based on the given lengths. This is to ensure that the
         results of the model do not change when batch sizes change during inference.
-        Input needs to be in the shape of (BxCxDxT)
+        Input needs to be in the shape of (Batch, Channel, Feature, Time)
         :param seq_module: The sequential module containing the conv stack.
         """
         super(MaskConv, self).__init__()
         self.seq_module = seq_module
 
-    def forward(self, x, lengths):
+    def forward(self, x, lengths=None):
         """
-        :param x: The input of size BxCxDxT
+        :param x: The input of size (Batch, Channel, Feature, Time)
         :param lengths: The actual length of each sequence in the batch
         :return: Masked output from the module
         """
         for module in self.seq_module:
             x = module(x)
+            if lengths is None:
+                continue
             mask = torch.BoolTensor(x.size()).fill_(0)
             if x.is_cuda:
                 mask = mask.cuda()
@@ -58,29 +60,26 @@ class SequenceWise(torch.nn.Module):
         return tmpstr
 
 
-class BatchRNN(torch.nn.Module):
-    def __init__(self, input_size, hidden_size, rnn_type=torch.nn.LSTM, bidirectional=False, batch_norm=True):
-        super(BatchRNN, self).__init__()
+class BatchLSTM(torch.nn.Module):
+    def __init__(self, input_size, hidden_size, batch_norm=True):
+        super(BatchLSTM, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
-        self.bidirectional = bidirectional
         self.batch_norm = SequenceWise(torch.nn.BatchNorm1d(input_size)) if batch_norm else None
-        self.rnn = rnn_type(input_size=input_size, hidden_size=hidden_size,
-                            bidirectional=bidirectional, bias=True)
-        self.num_directions = 2 if bidirectional else 1
+        self.rnn = torch.nn.LSTM(input_size=input_size, hidden_size=hidden_size, bias=True)
 
     def flatten_parameters(self):
         self.rnn.flatten_parameters()
 
-    def forward(self, x, output_lengths):
+    def forward(self, x, h0, c0, output_lengths=None):
         if self.batch_norm is not None:
             x = self.batch_norm(x)
-        x = torch.nn.utils.rnn.pack_padded_sequence(x, output_lengths, enforce_sorted=False)
-        x, h = self.rnn(x)
-        x, _ = torch.nn.utils.rnn.pad_packed_sequence(x)
-        if self.bidirectional:
-            x = x.view(x.size(0), x.size(1), 2, -1).sum(2).view(x.size(0), x.size(1), -1)  # (TxNxH*2) -> (TxNxH) by sum
-        return x
+        if output_lengths is not None:
+            x = torch.nn.utils.rnn.pack_padded_sequence(x, output_lengths)
+        x, (hn, cn) = self.rnn(x, (h0, c0))
+        if output_lengths is not None:
+            x, _ = torch.nn.utils.rnn.pad_packed_sequence(x)
+        return x, hn, cn
 
 
 class Lookahead(torch.nn.Module):
@@ -115,10 +114,3 @@ class Lookahead(torch.nn.Module):
                + 'n_features=' + str(self.n_features) \
                + ', context=' + str(self.context) + ')'
 
-
-class InferenceBatchSoftmax(torch.nn.Module):
-    def forward(self, input_):
-        if not self.training:
-            return torch.nn.functional.softmax(input_, dim=-1)
-        else:
-            return input_

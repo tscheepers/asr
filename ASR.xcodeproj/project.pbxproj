@@ -36,6 +36,8 @@
 		76608DE525D6BA88000C6BE5 /* DeepSpeech.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 76608DA225D6AA6E000C6BE5 /* DeepSpeech.mlmodel */; };
 		76608DE925D6BC1A000C6BE5 /* Vector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608DE825D6BC1A000C6BE5 /* Vector.swift */; };
 		76608DEC25D6BC1E000C6BE5 /* Vector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608DE825D6BC1A000C6BE5 /* Vector.swift */; };
+		76A053B025DC04F80037E70F /* ASRModel.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 76A053AF25DC04F80037E70F /* ASRModel.mlmodel */; };
+		76A053B125DC04F80037E70F /* ASRModel.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 76A053AF25DC04F80037E70F /* ASRModel.mlmodel */; };
 		76A1F13F25D7CBDD00B2DC7A /* STFTHammingOutput.csv in Resources */ = {isa = PBXBuildFile; fileRef = 76A1F13E25D7CBDD00B2DC7A /* STFTHammingOutput.csv */; };
 		76B9BAEB25D59339000AADCC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B9BAEA25D59339000AADCC /* AppDelegate.swift */; };
 		76B9BAED25D59339000AADCC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B9BAEC25D59339000AADCC /* SceneDelegate.swift */; };
@@ -77,6 +79,7 @@
 		76608DE825D6BC1A000C6BE5 /* Vector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Vector.swift; sourceTree = "<group>"; };
 		76608DEF25D6C372000C6BE5 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		76608DF025D6C372000C6BE5 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		76A053AF25DC04F80037E70F /* ASRModel.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = ASRModel.mlmodel; sourceTree = "<group>"; };
 		76A1F13E25D7CBDD00B2DC7A /* STFTHammingOutput.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = STFTHammingOutput.csv; sourceTree = "<group>"; };
 		76B9BAE725D59339000AADCC /* ASR.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ASR.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		76B9BAEA25D59339000AADCC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -136,6 +139,7 @@
 			isa = PBXGroup;
 			children = (
 				76608DA225D6AA6E000C6BE5 /* DeepSpeech.mlmodel */,
+				76A053AF25DC04F80037E70F /* ASRModel.mlmodel */,
 				76608DB925D6AAD6000C6BE5 /* ASR.swift */,
 			);
 			path = Model;
@@ -320,6 +324,7 @@
 			files = (
 				76608DA325D6AA6E000C6BE5 /* DeepSpeech.mlmodel in Sources */,
 				76608DAC25D6AAA2000C6BE5 /* Vector+STFT.swift in Sources */,
+				76A053B025DC04F80037E70F /* ASRModel.mlmodel in Sources */,
 				76B9BAEF25D59339000AADCC /* ViewController.swift in Sources */,
 				76608DAF25D6AAA2000C6BE5 /* Matrix.swift in Sources */,
 				76B9BAEB25D59339000AADCC /* AppDelegate.swift in Sources */,
@@ -342,6 +347,7 @@
 				76608DCA25D6B070000C6BE5 /* Matrix+CoreML.swift in Sources */,
 				76608DC925D6B070000C6BE5 /* Matrix+vDSP.swift in Sources */,
 				76608DE525D6BA88000C6BE5 /* DeepSpeech.mlmodel in Sources */,
+				76A053B125DC04F80037E70F /* ASRModel.mlmodel in Sources */,
 				7640CE0525D69CBB006993BF /* MatrixTests.swift in Sources */,
 				76608DC625D6B070000C6BE5 /* Vector+STFT.swift in Sources */,
 				76608DE225D6B9D4000C6BE5 /* ASR.swift in Sources */,

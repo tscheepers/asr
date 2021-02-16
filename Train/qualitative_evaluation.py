@@ -19,27 +19,26 @@ class QualitativeEvaluation(pytorch_lightning.callbacks.Callback):
         self.tiny_dataset = model.val_dataset
 
         self.beam_search = CTCBeamDecoder(self.string_processor.chars, beam_width=100,
-                                          blank_id=self.string_processor.blank_id)
+                                          blank_id=self.string_processor.blank_id, log_probs_input=True)
 
     def on_validation_epoch_end(self, trainer, model):
         with torch.no_grad():
             for i in range(self.n_samples):
                 (features, labels, n_features, _) = self.tiny_dataset[i]
 
-                features = features.unsqueeze(0).to(model.device)
-                y, _ = model(features, torch.IntTensor([n_features]))
-                log_probabilities = torch.nn.functional.log_softmax(y, dim=2)
+                features = features.to(model.device)
+                y,  _, _ = model(features)
 
                 ground_truth = self.string_processor.labels_to_str(labels)
                 print("orig.:\t\t\"%s\"" % ground_truth)
 
-                arg_maxes = torch.argmax(log_probabilities.squeeze(0), 1).cpu().numpy()
+                arg_maxes = torch.argmax(y, -1).cpu().numpy()
                 output = self.string_processor.labels_to_str(arg_maxes)
                 greedy = self.string_processor.labels_to_str(collapse_ctc(arg_maxes, blank_id=self.string_processor.blank_id))
                 print("output:\t\t\"%s\"" % output)
                 print("greedy:\t\t\"%s\" cer: %f wer: %f" % (greedy, calc_cer(greedy, ground_truth), calc_wer(greedy, ground_truth)))
 
-                beam_result, beam_scores, timesteps, out_seq_len = self.beam_search.decode(log_probabilities)
+                beam_result, beam_scores, timesteps, out_seq_len = self.beam_search.decode(y.unsqueeze(1))
                 for i in range(5):
                     result = beam_result[0][i][0:out_seq_len[0][i]].numpy().tolist()
                     string = self.string_processor.labels_to_str(result)
