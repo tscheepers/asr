@@ -5,6 +5,7 @@ import numpy as np
 from functools import lru_cache
 from typing import List
 
+from spec_augment import spec_augment
 from config import Config
 
 
@@ -48,10 +49,11 @@ class StringProcessor:
 
 class Dataset(torch.utils.data.Dataset):
 
-    def __init__(self, samples: List[Sample], string_processor: StringProcessor, config: Config):
+    def __init__(self, samples: List[Sample], string_processor: StringProcessor, config: Config, spec_augment: bool = False):
         super(Dataset, self).__init__()
 
         self.samples = samples
+        self.spec_augment = spec_augment
         self.max_timesteps = config.max_timesteps
         self.sample_rate = config.sample_rate
         self.window_size = config.window_size
@@ -90,6 +92,10 @@ class Dataset(torch.utils.data.Dataset):
         spectrogram = np.log1p(magnitudes)
         spectrogram = (spectrogram - spectrogram.mean()) / spectrogram.std()
         spectrogram = torch.Tensor(spectrogram)
+
+        if self.spec_augment:
+            spectrogram = spec_augment(spectrogram)
+
         n_timesteps = spectrogram.shape[-1]
 
         if n_timesteps > self.max_timesteps:
@@ -121,7 +127,7 @@ class CommonVoiceDataset(Dataset):
 
 class LibriSpeechDataset(Dataset):
     def __init__(self, string_processor: StringProcessor, config: Config,
-                 filepath='/home/thijs/Datasets/LibriSpeech/dev_transcriptions.tsv'):
+                 filepath='/home/thijs/Datasets/LibriSpeech/dev_transcriptions.tsv', spec_augment: bool = False):
         samples = []
         with open(filepath, "r") as f:
             f.readline()  # Skip the first line
@@ -131,7 +137,7 @@ class LibriSpeechDataset(Dataset):
                 sentence = split[2]
                 samples.append(Sample(sentence, path))
 
-        super(LibriSpeechDataset, self).__init__(samples, string_processor, config)
+        super(LibriSpeechDataset, self).__init__(samples, string_processor, config, spec_augment=spec_augment)
 
 
 def collate_dataset(dataset):
@@ -141,11 +147,11 @@ def collate_dataset(dataset):
     n_labels = []
 
     # Order by number of timesteps descending
-    for (ss, ls, s, l) in sorted((-ss, -ls, s, l) for (s, l, ss, ls) in dataset):
+    for (s, l, ss, ls) in sorted(dataset, key=lambda x: -x[2]):
         spectrograms.append(s.transpose(0, 1))
         labels.append(l)
-        n_timesteps.append(-ss)
-        n_labels.append(-ls)
+        n_timesteps.append(ss)
+        n_labels.append(ls)
 
     spectrograms = torch.nn.utils.rnn.pad_sequence(spectrograms, batch_first=True).transpose(1, 2)  # batch, spectrogram, time
     labels = torch.nn.utils.rnn.pad_sequence(labels, batch_first=True)  # batch, time

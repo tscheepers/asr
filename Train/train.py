@@ -6,7 +6,8 @@ from model import Model
 
 
 if __name__ == '__main__':
-    model = Model()
+    model = Model.load_from_checkpoint(
+        './checkpoints-long-run-librispeech-without-spec-augment/epoch=11-step=208357.ckpt')
 
     pytorch_lightning.Trainer(
         max_epochs=1000, gpus=1,
@@ -14,13 +15,13 @@ if __name__ == '__main__':
         progress_bar_refresh_rate=5,
         # overfit_batches=1,
         # check_val_every_n_epoch=10,
-        val_check_interval=5000,
+        val_check_interval=2500,
         weights_summary='full',
         callbacks=[
             QualitativeEvaluation(),
             pytorch_lightning.callbacks.ModelCheckpoint(
-                dirpath='./checkpoints', monitor='val_wer',
-                save_top_k=1, save_last=True, mode='min'
+                dirpath='./checkpoints-fine-tuning', monitor='val_wer',
+                save_top_k=3, save_last=True, mode='min'
             )
         ],
         logger=pytorch_lightning.loggers.TensorBoardLogger('./logs', name='speech_recognition')

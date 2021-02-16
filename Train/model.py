@@ -74,7 +74,7 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         )
 
         self.train_dataset = LibriSpeechDataset(
-            self.string_processor, config,
+            self.string_processor, config, spec_augment=True,
             filepath='/home/thijs/Datasets/LibriSpeech/train_transcriptions.tsv'
         )
         self.test_dataset = LibriSpeechDataset(

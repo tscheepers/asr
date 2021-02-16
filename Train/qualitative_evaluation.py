@@ -24,13 +24,13 @@ class QualitativeEvaluation(pytorch_lightning.callbacks.Callback):
     def on_validation_epoch_end(self, trainer, model):
         with torch.no_grad():
             for i in range(self.n_samples):
-                (features, labels, n_features, _) = self.tiny_dataset[i]
+                (features, labels, _, _) = self.tiny_dataset[i]
 
                 features = features.to(model.device)
-                y,  _, _ = model(features)
+                y, _, _ = model(features)
 
                 ground_truth = self.string_processor.labels_to_str(labels)
-                print("orig.:\t\t\"%s\"" % ground_truth)
+                print("\norig.:\t\t\"%s\"" % ground_truth)
 
                 arg_maxes = torch.argmax(y, -1).cpu().numpy()
                 output = self.string_processor.labels_to_str(arg_maxes)
@@ -38,7 +38,7 @@ class QualitativeEvaluation(pytorch_lightning.callbacks.Callback):
                 print("output:\t\t\"%s\"" % output)
                 print("greedy:\t\t\"%s\" cer: %f wer: %f" % (greedy, calc_cer(greedy, ground_truth), calc_wer(greedy, ground_truth)))
 
-                beam_result, beam_scores, timesteps, out_seq_len = self.beam_search.decode(y.unsqueeze(1))
+                beam_result, beam_scores, timesteps, out_seq_len = self.beam_search.decode(y.unsqueeze(0))
                 for i in range(5):
                     result = beam_result[0][i][0:out_seq_len[0][i]].numpy().tolist()
                     string = self.string_processor.labels_to_str(result)
