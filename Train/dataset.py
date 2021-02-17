@@ -68,7 +68,6 @@ class Dataset(torch.utils.data.Dataset):
             idx = idx.item()
         return self._getitem(idx)
 
-    @lru_cache()
     def _getitem(self, idx):
         sample = self.samples[idx]
 

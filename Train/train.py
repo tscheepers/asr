@@ -1,7 +1,7 @@
 import pytorch_lightning
 import torch
 
-from qualitative_evaluation import QualitativeEvaluation
+from qualitative_evaluation import QualitativeEvaluationCallback
 from model import Model
 
 
@@ -18,7 +18,7 @@ if __name__ == '__main__':
         val_check_interval=2500,
         weights_summary='full',
         callbacks=[
-            QualitativeEvaluation(),
+            QualitativeEvaluationCallback(),
             pytorch_lightning.callbacks.ModelCheckpoint(
                 dirpath='./checkpoints-fine-tuning', monitor='val_wer',
                 save_top_k=3, save_last=True, mode='min'

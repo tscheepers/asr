@@ -7,8 +7,12 @@ if __name__ == '__main__':
     model = Model.load_from_checkpoint(
         './checkpoints-long-run-librispeech-without-spec-augment/epoch=11-step=208357.ckpt')
 
-    frames = 500
-    spectrogram = torch.rand((161, frames))
+    center_time_frames = 50
+
+    # On inference the user is expected to pad the input
+    time_padding = 5
+
+    spectrogram = torch.rand((161, center_time_frames + 2 * time_padding))
     h0 = torch.zeros(model.config.num_layers, model.config.hidden_size)
     c0 = torch.zeros(model.config.num_layers, model.config.hidden_size)
     traced_model = torch.jit.trace(model, (spectrogram, h0, c0))

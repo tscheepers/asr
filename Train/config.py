@@ -17,3 +17,4 @@ class Config:
     weight_decay: float = 1e-5
     lr_gamma: float = 0.99
     num_workers: int = 16
+    time_padding: bool = True

@@ -19,11 +19,15 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         # STFT outputs nFFT / 2 + 1 features
         input_size = int(config.sample_rate * config.window_size) // 2 + 1
 
+        # When training we should use zero padding on the time dimension
+        # When performing streaming inference we should not
+        time_padding = 5 if self.config.time_padding else 0
+
         self.conv = MaskConv(torch.nn.Sequential(
-            torch.nn.Conv2d(1, 32, kernel_size=(41, 11), stride=(2, 2), padding=(20, 5)),
+            torch.nn.Conv2d(1, 32, kernel_size=(41, 11), stride=(2, 2), padding=(20, time_padding)),
             torch.nn.BatchNorm2d(32),
             torch.nn.Hardtanh(0.0, 20.0, inplace=True),
-            torch.nn.Conv2d(32, 32, kernel_size=(21, 11), stride=(2, 1), padding=(10, 5)),
+            torch.nn.Conv2d(32, 32, kernel_size=(21, 11), stride=(2, 1), padding=(10, time_padding)),
             torch.nn.BatchNorm2d(32),
             torch.nn.Hardtanh(0.0, 20.0, inplace=True)
         ))
@@ -119,20 +123,20 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         x = x.transpose(1, 2).transpose(0, 1).contiguous()  # time, batch, feature
 
         if lstm_h0 is None:
-            lstm_h0 = torch.zeros(self.config.num_layers, batch_size, self.config.hidden_size).cuda()
+            lstm_h0 = torch.zeros(self.config.num_layers, batch_size, self.config.hidden_size, device=self.device)
         elif len(lstm_h0.shape) == 2:
             lstm_h0 = lstm_h0.unsqueeze(1)
 
         if lstm_c0 is None:
-            lstm_c0 = torch.zeros(self.config.num_layers, batch_size, self.config.hidden_size).cuda()
+            lstm_c0 = torch.zeros(self.config.num_layers, batch_size, self.config.hidden_size, device=self.device)
         elif len(lstm_c0.shape) == 2:
             lstm_c0 = lstm_c0.unsqueeze(1)
 
         lstm_hn = lstm_cn = None
         for i, lstm in enumerate(self.rnns):
-            x, hn, cn = lstm(x, lstm_h0[i].unsqueeze(0), lstm_c0[i].unsqueeze(0), n)  # time, batch, feature
-            lstm_hn = hn if lstm_hn is None else torch.cat((lstm_hn, hn), dim=0)
-            lstm_cn = cn if lstm_cn is None else torch.cat((lstm_cn, cn), dim=0)
+            x, hn, cn = lstm(x, lstm_h0[i,:,:].unsqueeze(0), lstm_c0[i,:,:].unsqueeze(0), n)  # time, batch, feature
+            lstm_hn = hn if lstm_hn is None else torch.cat((lstm_hn, hn))
+            lstm_cn = cn if lstm_cn is None else torch.cat((lstm_cn, cn))
 
         x = self.lookahead(x)  # time, batch, feature
         x = self.fc(x)  # time, batch, label
