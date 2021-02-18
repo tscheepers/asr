@@ -43,8 +43,12 @@ class StringProcessor:
 
         return [self.char_to_idx[char] for char in string]
 
-    def labels_to_str(self, labels):
-        return ''.join([self.chars[int(idx)] for idx in labels])
+    def labels_to_str(self, labels, split_every=None):
+
+        result = ''.join([self.chars[int(idx)] for idx in labels])
+        if split_every is None:
+            return result
+        return '|'.join(result[i:i + split_every] for i in range(0, len(result), split_every))
 
 
 class Dataset(torch.utils.data.Dataset):

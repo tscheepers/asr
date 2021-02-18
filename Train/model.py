@@ -21,13 +21,13 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
 
         # When training we should use zero padding on the time dimension
         # When performing streaming inference we should not
-        time_padding = 5 if self.config.time_padding else 0
+        time_padding = 15 if self.config.time_padding else 0
 
         self.conv = MaskConv(torch.nn.Sequential(
             torch.nn.Conv2d(1, 32, kernel_size=(41, 11), stride=(2, 2), padding=(20, time_padding)),
             torch.nn.BatchNorm2d(32),
             torch.nn.Hardtanh(0.0, 20.0, inplace=True),
-            torch.nn.Conv2d(32, 32, kernel_size=(21, 11), stride=(2, 1), padding=(10, time_padding)),
+            torch.nn.Conv2d(32, 32, kernel_size=(21, 11), stride=(2, 1), padding=(10, 0)),
             torch.nn.BatchNorm2d(32),
             torch.nn.Hardtanh(0.0, 20.0, inplace=True)
         ))
@@ -132,9 +132,21 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         elif len(lstm_c0.shape) == 2:
             lstm_c0 = lstm_c0.unsqueeze(1)
 
+        timestep_for_lstm_output = x.size()[0] - self.config.lookahead_context
+        if timestep_for_lstm_output <= 0:
+            raise Exception("Could not return LSTM hidden state because frame is to small")
+
         lstm_hn = lstm_cn = None
         for i, lstm in enumerate(self.rnns):
-            x, hn, cn = lstm(x, lstm_h0[i,:,:].unsqueeze(0), lstm_c0[i,:,:].unsqueeze(0), n)  # time, batch, feature
+            h0, c0 = lstm_h0[i, :, :].unsqueeze(0), lstm_c0[i, :, :].unsqueeze(0)
+
+            if n is None:
+                xa, hn, cn = lstm(x[:timestep_for_lstm_output, :, :], h0, c0)  # time, batch, feature
+                xb, _, _ = lstm(x[timestep_for_lstm_output:,:,:], hn, cn)  # time, batch, feature
+                x = torch.cat((xa, xb))
+            else:
+                x, hn, cn = lstm(x, h0, c0, n) # time, batch, feature
+
             lstm_hn = hn if lstm_hn is None else torch.cat((lstm_hn, hn))
             lstm_cn = cn if lstm_cn is None else torch.cat((lstm_cn, cn))
 

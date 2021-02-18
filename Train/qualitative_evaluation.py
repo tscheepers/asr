@@ -14,17 +14,17 @@ class QualitativeEvaluator:
         self.beam_search = beam_search
         self.print_beams = print_beams
 
-    def print_evaluation_of_sample(self, spectrogram, labels):
-        spectrogram = torch.Tensor(spectrogram, device=self.model.device)
+    def print_evaluation_of_sample(self, spectrogram, labels, split_every=None):
+        spectrogram = torch.Tensor(spectrogram).to(self.model.device)
         y, _, _ = self.model.forward(spectrogram)
-        return self.print_evaluation_of_output(y, labels)
+        self.print_evaluation_of_output(y, labels, split_every=split_every)
 
-    def print_evaluation_of_output(self, log_probabilities, labels):
+    def print_evaluation_of_output(self, log_probabilities, labels, split_every=30):
         arg_maxes, greedy_decoded, beams_decoded = self.evaluate_log_probabilities(log_probabilities)
 
         original_string = self.string_processor.labels_to_str(labels)
         print("orig.:\t\t\"%s\"" % original_string)
-        print("output:\t\t\"%s\"" % self.string_processor.labels_to_str(arg_maxes))
+        print("output:\t\t\"%s\"" % self.string_processor.labels_to_str(arg_maxes, split_every=split_every))
 
         greedy_string = self.string_processor.labels_to_str(greedy_decoded)
         print("greedy:\t\t\"%s\" [cer: %.2f] [wer: %.2f]" % (

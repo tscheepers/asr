@@ -7,8 +7,8 @@ The model's architecture is mostly inspired by [DeepSpeech](https://arxiv.org/ab
 This project is a work in progress.
 
 Training:
-- [ ] Write model ready for streaming inference, with lookahead, without bi-directional LSTM
-- [ ] Train on LibriSpeech (English)
+- [x] Write model ready for streaming inference, with lookahead, without bi-directional LSTM
+- [x] Train on LibriSpeech (English)
 - [x] Prepare Corpus Gesproken Nederlands, _thanks [@wilrop](https://github.com/wilrop/Import-CGN)_  
 - [ ] Train on Common Voice + Corpus Gesproken Nederlands
 - [ ] Train a small Transformer language model on Dutch Wikipedia, to improve decoding
@@ -19,6 +19,6 @@ Inference:
 - [x] Load pretrained [deepspeech.pytorch](https://github.com/SeanNaren/deepspeech.pytorch) using coremltools
 - [x] Implement greedy decoding in Swift
 - [ ] Implement CTC Beam Search decoder in Swift
-- [ ] Load custom model using coremltools into the iPhone codebase
+- [x] Load custom model using coremltools into the iPhone codebase
 - [ ] Augment decoder with Transformer based language model
 - [ ] Create fancy UI showing how steaming recognition and beam Search decoding works, while the user is speaking into the phone
