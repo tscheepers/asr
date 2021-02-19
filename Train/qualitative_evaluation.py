@@ -7,6 +7,10 @@ import Levenshtein as Lev
 
 
 class QualitativeEvaluator:
+    """
+    Use the QualitativeEvaluator for evaluating, processing and printing a couple of validation samples during training.
+    This can be helpful to see if the model is producing sensible output.
+    """
 
     def __init__(self, model: Model, string_processor: StringProcessor, beam_search: CTCBeamDecoder, print_beams: int = 5):
         self.model = model
@@ -86,6 +90,10 @@ class QualitativeEvaluator:
 
 
 class QualitativeEvaluationCallback(pytorch_lightning.callbacks.Callback):
+    """
+    Callback to be used with PyTorchLighting. Every time a validation epoch finishes, this callback will process a
+    couple of validation examples and print them to the console.
+    """
 
     def __init__(self, n_samples=2):
         self.dataset = None

@@ -1,6 +1,6 @@
-from model import Model
 import torch
 import coremltools as ct
+from model import Model
 
 
 if __name__ == '__main__':

@@ -1,11 +1,9 @@
 import pytorch_lightning
 import torch
-
 from config import Config
 from dataset import LibriSpeechDataset, collate_dataset, StringProcessor
-from decoder import GreedyDecoder
-from layer import MaskConv, SequenceWise, BatchLSTM, Lookahead
-from validation import WordErrorRate, CharErrorRate
+from lib.layers import MaskConv, SequenceWise, BatchLSTM, Lookahead
+from lib.decoding import WordErrorRate, CharErrorRate, GreedyDecoder
 
 
 class Model(pytorch_lightning.core.lightning.LightningModule):

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# ----------------------------------------------------------------------------
 # Copyright 2019 RnD at Spoon Radio
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,8 +13,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ==============================================================================
-"""SpecAugment Implementation for Tensorflow.
+# ----------------------------------------------------------------------------
+
+"""
+SpecAugment Implementation for Tensorflow.
 Related paper : https://arxiv.org/pdf/1904.08779.pdf
 In this paper, show summarized parameters by each open datasets in Tabel 1.
 -----------------------------------------
@@ -38,9 +42,6 @@ import librosa
 import librosa.display
 import numpy as np
 import random
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 from sparse_image_warp import sparse_image_warp
 import torch
 
@@ -51,10 +52,7 @@ def time_warp(spec, W=5):
 
     y = num_rows // 2
     horizontal_line_at_ctr = spec[0][y]
-    # assert len(horizontal_line_at_ctr) == spec_len
-
     point_to_warp = horizontal_line_at_ctr[random.randrange(W, spec_len-W)]
-    # assert isinstance(point_to_warp, torch.Tensor)
 
     # Uniform distribution from (0,W) with chance to be up to W negative
     dist_to_warp = random.randrange(-W, W)
@@ -121,10 +119,13 @@ def visualization_spectrogram(mel_spectrogram, title):
       mel_spectrogram(ndarray): mel_spectrogram to visualize.
       title(String): plot figure's title
     """
+    import matplotlib
+    import matplotlib.pyplot as plt
+    matplotlib.use('Agg')
+
     # Show mel-spectrogram using librosa's specshow.
     plt.figure(figsize=(10, 4))
     librosa.display.specshow(librosa.power_to_db(mel_spectrogram[0, :, :], ref=np.max), y_axis='mel', fmax=8000, x_axis='time')
-    # plt.colorbar(format='%+2.0f dB')
     plt.title(title)
     plt.tight_layout()
     plt.show()

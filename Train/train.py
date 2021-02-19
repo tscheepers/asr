@@ -1,13 +1,12 @@
 import pytorch_lightning
 import torch
-
 from qualitative_evaluation import QualitativeEvaluationCallback
 from model import Model
 
 
 if __name__ == '__main__':
     model = Model.load_from_checkpoint(
-        './checkpoints-long-run-librispeech-without-spec-augment/epoch=11-step=208357.ckpt'
+        './checkpoints-fine-tuning-padding-fix/last.ckpt'
     )
 
     pytorch_lightning.Trainer(
@@ -16,7 +15,7 @@ if __name__ == '__main__':
         progress_bar_refresh_rate=5,
         # overfit_batches=1,
         # check_val_every_n_epoch=10,
-        resume_from_checkpoint='./checkpoints-long-run-librispeech-without-spec-augment/epoch=11-step=208357.ckpt',
+        resume_from_checkpoint='./checkpoints-fine-tuning-padding-fix/last.ckpt',
         val_check_interval=2500,
         weights_summary='full',
         callbacks=[

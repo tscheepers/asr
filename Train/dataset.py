@@ -2,10 +2,8 @@ import librosa
 import torch
 import re
 import numpy as np
-from functools import lru_cache
 from typing import List
-
-from spec_augment import spec_augment
+from lib.spec_augment import spec_augment
 from config import Config
 
 
