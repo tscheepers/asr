@@ -51,11 +51,12 @@ class StringProcessor:
 
 class Dataset(torch.utils.data.Dataset):
 
-    def __init__(self, samples: List[Sample], string_processor: StringProcessor, config: Config, spec_augment: bool = False):
+    def __init__(self, samples: List[Sample], string_processor: StringProcessor, config: Config, train: bool = False):
         super(Dataset, self).__init__()
 
         self.samples = samples
-        self.spec_augment = spec_augment
+        self.train = train
+        self.spec_augment = config.spec_augment
         self.max_timesteps = config.max_timesteps
         self.sample_rate = config.sample_rate
         self.window_size = config.window_size
@@ -94,7 +95,7 @@ class Dataset(torch.utils.data.Dataset):
         spectrogram = (spectrogram - spectrogram.mean()) / spectrogram.std()
         spectrogram = torch.Tensor(spectrogram)
 
-        if self.spec_augment:
+        if self.train and self.spec_augment:
             spectrogram = spec_augment(spectrogram)
 
         n_timesteps = spectrogram.shape[-1]
@@ -128,7 +129,7 @@ class CommonVoiceDataset(Dataset):
 
 class LibriSpeechDataset(Dataset):
     def __init__(self, string_processor: StringProcessor, config: Config,
-                 filepath='/home/thijs/Datasets/LibriSpeech/dev_transcriptions.tsv', spec_augment: bool = False):
+                 filepath='/home/thijs/Datasets/LibriSpeech/dev_transcriptions.tsv', train: bool = False):
         samples = []
         with open(filepath, "r") as f:
             f.readline()  # Skip the first line
@@ -138,7 +139,7 @@ class LibriSpeechDataset(Dataset):
                 sentence = split[2]
                 samples.append(Sample(sentence, path))
 
-        super(LibriSpeechDataset, self).__init__(samples, string_processor, config, spec_augment=spec_augment)
+        super(LibriSpeechDataset, self).__init__(samples, string_processor, config, train=train)
 
 
 def collate_dataset(dataset):

@@ -19,12 +19,18 @@ class QualitativeEvaluator:
         self.print_beams = print_beams
 
     def print_evaluation_of_sample(self, spectrogram, labels, split_every=None):
+        """
+        Evaluate the model using reference labels and print their result to the console
+        """
         spectrogram = torch.Tensor(spectrogram).to(self.model.device)
         y, _, _ = self.model.forward(spectrogram)
         self.print_evaluation_of_output(y, labels, split_every=split_every)
 
     def print_evaluation_of_output(self, log_probabilities, labels, split_every=30):
-        arg_maxes, greedy_decoded, beams_decoded = self.evaluate_log_probabilities(log_probabilities)
+        """
+        Evaluate the model's output using reference labels and print their result to the console
+        """
+        arg_maxes, greedy_decoded, beams_decoded = self.decode_log_probabilities(log_probabilities)
 
         original_string = self.string_processor.labels_to_str(labels)
         print("orig.:\t\t\"%s\"" % original_string)
@@ -45,7 +51,10 @@ class QualitativeEvaluator:
                 self.word_error_rate(string, original_string)
             ))
 
-    def evaluate_log_probabilities(self, log_probabilities):
+    def decode_log_probabilities(self, log_probabilities):
+        """
+        Decodes the model output
+        """
         arg_maxes = torch.argmax(log_probabilities, -1).cpu().numpy()
         greedy_decoded = self.collapse_ctc(arg_maxes, blank_id=self.string_processor.blank_id)
 
@@ -60,6 +69,9 @@ class QualitativeEvaluator:
 
     @staticmethod
     def collapse_ctc(arg_maxes, blank_id=28):
+        """
+        Collapses a string like "...aaaa.b.c.c.ddd.e.." into "abccde"
+        """
         result = []
         for i, index in enumerate(arg_maxes):
             if index == blank_id:
@@ -71,6 +83,9 @@ class QualitativeEvaluator:
 
     @staticmethod
     def word_error_rate(hyp, ref):
+        """
+        Calculates the word error rate for a particular sentence
+        """
         # build mapping of words to integers
         b = set(hyp.split() + ref.split())
         word2char = dict(zip(b, range(len(b))))
@@ -84,6 +99,9 @@ class QualitativeEvaluator:
 
     @staticmethod
     def character_error_rate(hyp, ref):
+        """
+        Calculates the character error rate for a particular sentence
+        """
         hyp, ref, = hyp.replace(' ', ''), ref.replace(' ', '')
         distance = Lev.distance(hyp, ref)
         return distance / len(ref) * 100

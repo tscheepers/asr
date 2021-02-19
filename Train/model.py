@@ -8,11 +8,11 @@ from lib.decoding import WordErrorRate, CharErrorRate, GreedyDecoder
 
 class Model(pytorch_lightning.core.lightning.LightningModule):
 
-    def __init__(self, config=Config()):
+    def __init__(self, config=Config(), string_processor=StringProcessor()):
         super(Model, self).__init__()
 
         self.config = config
-        self.string_processor = StringProcessor()
+        self.string_processor = string_processor
 
         # STFT outputs nFFT / 2 + 1 features
         input_size = int(config.sample_rate * config.window_size) // 2 + 1
@@ -21,13 +21,15 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         # When performing streaming inference we should not
         time_padding = 15 if self.config.time_padding else 0
 
+        # Layer 1-2: 2 x Convolutional layers
+        n_channels = config.conv_channels
         self.conv = MaskConv(torch.nn.Sequential(
-            torch.nn.Conv2d(1, 32, kernel_size=(41, 11), stride=(2, 2), padding=(20, time_padding)),
-            torch.nn.BatchNorm2d(32),
-            torch.nn.Hardtanh(0.0, 20.0, inplace=True),
-            torch.nn.Conv2d(32, 32, kernel_size=(21, 11), stride=(2, 1), padding=(10, 0)),
-            torch.nn.BatchNorm2d(32),
-            torch.nn.Hardtanh(0.0, 20.0, inplace=True)
+            torch.nn.Conv2d(1, n_channels, kernel_size=(41, 11), stride=(2, 2), padding=(20, time_padding)),
+            torch.nn.BatchNorm2d(n_channels),
+            torch.nn.Hardtanh(config.tanh_min, config.tanh_max, inplace=True),
+            torch.nn.Conv2d(n_channels, n_channels, kernel_size=(21, 11), stride=(2, 1), padding=(10, 0)),
+            torch.nn.BatchNorm2d(n_channels),
+            torch.nn.Hardtanh(config.tanh_min, config.tanh_max, inplace=True)
         ))
 
         # Based on above convolutions and spectrogram size using conv formula (W - F + 2P)/ S+1
@@ -35,6 +37,7 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         rnn_input_size = (rnn_input_size + 2 * 10 - 21) // 2 + 1
         rnn_input_size *= 32
 
+        # Layer 3-8: 5 x LSTM Layers
         self.rnns = torch.nn.Sequential(
             BatchLSTM(
                 input_size=rnn_input_size,
@@ -49,47 +52,41 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
             )
         )
 
+        # Layer 9: Lookahead layer
         self.lookahead = torch.nn.Sequential(
             Lookahead(config.hidden_size, context=config.lookahead_context),
-            torch.nn.Hardtanh(0.0, 20.0, inplace=True)
+            torch.nn.Hardtanh(config.tanh_min, config.tanh_max, inplace=True)
         )
 
+        # Layer 10: Fully connected layer
         self.fc = SequenceWise(torch.nn.Sequential(
             torch.nn.BatchNorm1d(config.hidden_size),
-            torch.nn.Linear(config.hidden_size, len(self.string_processor.chars), bias=False)
+            torch.nn.Linear(config.hidden_size, len(string_processor.chars), bias=False)
         ))
 
-        self.criterion = torch.nn.CTCLoss(blank=self.string_processor.blank_id, reduction='sum', zero_infinity=True)
+        # Loss function
+        self.criterion = torch.nn.CTCLoss(blank=string_processor.blank_id, reduction='sum', zero_infinity=True)
 
-        self.evaluation_decoder = GreedyDecoder(
-            self.string_processor.chars,
-            blank_index=self.string_processor.blank_id
-        )  # Decoder used for validation
+        # Decoder used for validation
+        self.evaluation_decoder = GreedyDecoder(string_processor.chars, blank_index=string_processor.blank_id)
+        self.wer = WordErrorRate(decoder=self.evaluation_decoder, target_decoder=self.evaluation_decoder)
+        self.cer = CharErrorRate(decoder=self.evaluation_decoder, target_decoder=self.evaluation_decoder)
 
-        self.wer = WordErrorRate(
-            decoder=self.evaluation_decoder,
-            target_decoder=self.evaluation_decoder
-        )
-        self.cer = CharErrorRate(
-            decoder=self.evaluation_decoder,
-            target_decoder=self.evaluation_decoder
-        )
-
+        # Datasets
         self.train_dataset = LibriSpeechDataset(
-            self.string_processor, config, spec_augment=True,
+            string_processor, config, train=True,
             filepath='/home/thijs/Datasets/LibriSpeech/train_transcriptions.tsv'
         )
         self.test_dataset = LibriSpeechDataset(
-            self.string_processor, config,
+            string_processor, config,
             filepath='/home/thijs/Datasets/LibriSpeech/test_transcriptions.tsv'
         )
         self.val_dataset = LibriSpeechDataset(
-            self.string_processor, config,
+            string_processor, config,
             filepath='/home/thijs/Datasets/LibriSpeech/dev_transcriptions.tsv'
         )
 
     def configure_optimizers(self):
-
         optimizer = torch.optim.AdamW(
             params=self.parameters(),
             lr=self.config.learning_rate,
@@ -110,74 +107,83 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
 
         # Allow for single value inputs
         if len(spectrograms.shape) == 2:
-            x = spectrograms.unsqueeze(0) # batch, feature, time
+            x = x.unsqueeze(0)  # batch, feature, time
 
-        n = self.get_n_hidden(n_timesteps) if n_timesteps is not None else None  # batch
-        x = x.unsqueeze(1) # batch, channel, feature, time
-        x, _ = self.conv(x, n)
+        x = x.unsqueeze(1)  # batch, channel, feature, time
+        x, n_timesteps = self.conv(x, n_timesteps)  # n_timesteps changes during the convolutions
 
         batch_size, channels, features, timesteps = x.size()
         x = x.view(batch_size, channels * features, timesteps)  # collapse feature dimension
         x = x.transpose(1, 2).transpose(0, 1).contiguous()  # time, batch, feature
 
-        if lstm_h0 is None:
-            lstm_h0 = torch.zeros(self.config.num_layers, batch_size, self.config.hidden_size, device=self.device)
-        elif len(lstm_h0.shape) == 2:
-            lstm_h0 = lstm_h0.unsqueeze(1)
-
-        if lstm_c0 is None:
-            lstm_c0 = torch.zeros(self.config.num_layers, batch_size, self.config.hidden_size, device=self.device)
-        elif len(lstm_c0.shape) == 2:
-            lstm_c0 = lstm_c0.unsqueeze(1)
-
-        timestep_for_lstm_output = x.size()[0] - self.config.lookahead_context
-        if timestep_for_lstm_output <= 0:
-            raise Exception("Could not return LSTM hidden state because frame is to small")
-
+        # If we are executing on one example and the model got an LSTM stating state, this function returns the state
+        # right before the lookahead overlaps with the end of the number of timesteps such that the model can be used
+        # in a streaming fashion.
         lstm_hn = lstm_cn = None
-        for i, lstm in enumerate(self.rnns):
-            h0, c0 = lstm_h0[i, :, :].unsqueeze(0), lstm_c0[i, :, :].unsqueeze(0)
+        if n_timesteps is None and lstm_h0 is not None and lstm_c0 is not None:
+            if len(spectrograms.shape) == 2:
+                lstm_h0 = lstm_h0.unsqueeze(1)
+                lstm_c0 = lstm_c0.unsqueeze(1)
 
-            if n is None:
+            timestep_for_lstm_output = x.size()[0] - self.config.lookahead_context
+            if timestep_for_lstm_output <= 0:
+                raise Exception("Could not return LSTM hidden state because frame is too small")
+
+            for i, lstm in enumerate(self.rnns):
+                h0, c0 = lstm_h0[i, :, :].unsqueeze(0), lstm_c0[i, :, :].unsqueeze(0)
+
+                # We perform the LSTM operation in two parts, first upto timestep_for_lstm_output and then the rest,
+                # because we want to capture the hidden state right after timestep_for_lstm_output for streaming.
                 xa, hn, cn = lstm(x[:timestep_for_lstm_output, :, :], h0, c0)  # time, batch, feature
                 xb, _, _ = lstm(x[timestep_for_lstm_output:,:,:], hn, cn)  # time, batch, feature
                 x = torch.cat((xa, xb))
-            else:
-                x, hn, cn = lstm(x, h0, c0, n) # time, batch, feature
 
-            lstm_hn = hn if lstm_hn is None else torch.cat((lstm_hn, hn))
-            lstm_cn = cn if lstm_cn is None else torch.cat((lstm_cn, cn))
+                lstm_hn = hn if lstm_hn is None else torch.cat((lstm_hn, hn))
+                lstm_cn = cn if lstm_cn is None else torch.cat((lstm_cn, cn))
+
+            if len(spectrograms.shape) == 2:
+                lstm_hn = lstm_hn.squeeze(1)
+                lstm_cn = lstm_cn.squeeze(1)
+        else:
+            for i, lstm in enumerate(self.rnns):
+                x, _, _ = lstm(x, n_timesteps=n_timesteps)  # time, batch, feature
 
         x = self.lookahead(x)  # time, batch, feature
         x = self.fc(x)  # time, batch, label
+
         x = x.transpose(0, 1)  # batch, time, label
         x = x.log_softmax(-1)  # batch, time, label
 
         # Return single value inputs
         if len(spectrograms.shape) == 2:
             x = x.squeeze(0)
-            lstm_hn = lstm_hn.squeeze(1)
-            lstm_cn = lstm_cn.squeeze(1)
 
         # When n_timesteps is not passed, we are not using padding and masking
         if n_timesteps is not None:
-            return x, n, lstm_hn, lstm_cn
-
-        return x, lstm_hn, lstm_cn
-
-    def get_n_hidden(self, n_timesteps):
-        n = n_timesteps.cpu().int()
-        for m in self.conv.modules():
-            if type(m) == torch.nn.modules.conv.Conv2d:
-                n = ((n + 2 * m.padding[1] - m.dilation[1] * (m.kernel_size[1] - 1) - 1) // m.stride[1] + 1)
-        return n.int()
+            return x, n_timesteps
+        elif lstm_hn is not None and lstm_cn is not None:
+            return x, lstm_hn, lstm_cn
+        else:
+            return x
 
     def training_step(self, batch, batch_idx):
         spectrograms, labels, n_timesteps, n_labels = batch
-        y, n_y, _, _ = self.forward(spectrograms, n_timesteps=n_timesteps)
+        y, n_y = self.forward(spectrograms, n_timesteps=n_timesteps)
         loss = self.criterion(y.transpose(0, 1), labels, n_y, n_labels)
         self.log('train_loss', loss, prog_bar=True, on_epoch=True, logger=True)
         return loss
+
+    def validation_step(self, batch, batch_idx):
+        spectrograms, labels, n_timesteps, n_labels = batch
+        y, n_y = self.forward(spectrograms, n_timesteps=n_timesteps)
+
+        loss = self.criterion(y.transpose(0, 1), labels, n_y, n_labels)
+        self.wer(preds=y, preds_sizes=n_y, targets=labels, target_sizes=n_labels)
+        self.cer(preds=y, preds_sizes=n_y, targets=labels, target_sizes=n_labels)
+
+        self.log('val_loss', loss, prog_bar=True, on_epoch=True, logger=True)
+        self.log('val_wer', self.wer.compute(), prog_bar=True, on_epoch=True, logger=True)
+        self.log('val_cer', self.cer.compute(), prog_bar=True, on_epoch=True, logger=True)
 
     def train_dataloader(self):
         return torch.utils.data.DataLoader(
@@ -186,29 +192,6 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
             collate_fn=collate_dataset,
             num_workers=self.config.num_workers
         )
-
-    def validation_step(self, batch, batch_idx):
-        spectrograms, labels, n_timesteps, n_labels = batch
-        y, n_y, _, _ = self.forward(spectrograms, n_timesteps=n_timesteps)
-        loss = self.criterion(y.transpose(0, 1), labels, n_y, n_labels)
-
-        self.wer(
-            preds=y,
-            preds_sizes=n_y,
-            targets=labels,
-            target_sizes=n_labels
-        )
-
-        self.cer(
-            preds=y,
-            preds_sizes=n_y,
-            targets=labels,
-            target_sizes=n_labels
-        )
-
-        self.log('val_loss', loss, prog_bar=True, on_epoch=True, logger=True)
-        self.log('val_wer', self.wer.compute(), prog_bar=True, on_epoch=True, logger=True)
-        self.log('val_cer', self.cer.compute(), prog_bar=True, on_epoch=True, logger=True)
 
     def val_dataloader(self):
         return torch.utils.data.DataLoader(

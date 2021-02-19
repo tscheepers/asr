@@ -18,3 +18,7 @@ class Config:
     lr_gamma: float = 0.99
     num_workers: int = 16
     time_padding: bool = True
+    spec_augment: bool = True
+    conv_channels: int = 32
+    tanh_min: float = 0.0
+    tanh_max: float = 20.0

@@ -1,23 +1,46 @@
+#!/usr/bin/python
+
+import sys
 import torch
 import coremltools as ct
 from model import Model
 
 
-if __name__ == '__main__':
-    model = Model.load_from_checkpoint(
-        './checkpoints-long-run-librispeech-without-spec-augment/epoch=11-step=208357.ckpt')
+def main(args):
+    """
+    Converts a pytoch model to a CoreML model
+    """
 
-    center_time_frames = 50
+    if len(args) != 2:
+        print('Please enter two arguments: coreml.py <inputfile.ckpt> <outputfile.mlmodel>')
+        sys.exit(2)
+
+    input_file, output_file = args
+
+    # Load model
+    model = Model.load_from_checkpoint(input_file)
+
+    # Set model to evaluation mode
+    model.eval()
+    model.zero_grad()
+    torch.set_grad_enabled(False)
 
     # On inference the user is expected to pad the input
-    time_padding = 5
+    useful_frame_width = 60
+    padding = 15
+    lookahead_overflow = model.config.lookahead_context * 2  # times two because of the strides in layer 1
+    total_frame_width = padding + useful_frame_width + lookahead_overflow + padding  # add left and right padding
 
-    spectrogram = torch.rand((161, center_time_frames + 2 * time_padding))
+    # Input descriptions
+    spectrogram = torch.rand((161, total_frame_width))
     h0 = torch.zeros(model.config.num_layers, model.config.hidden_size)
     c0 = torch.zeros(model.config.num_layers, model.config.hidden_size)
+
+    # Trace model
     traced_model = torch.jit.trace(model, (spectrogram, h0, c0))
 
-    cmlmodel = ct.convert(
+    # Convert model
+    coreml_model = ct.convert(
         traced_model,
         source="pytorch",
         inputs=[
@@ -25,10 +48,10 @@ if __name__ == '__main__':
             ct.TensorType(name="h0", shape=h0.shape),
             ct.TensorType(name="c0", shape=c0.shape),
         ],
-        output_names=["probabilities", "hn", "cn"]
+        output_names=["log_probabilities", "hn", "cn"]  # output_names do not seem to work yet
     )
+    coreml_model.save(output_file)
 
-    cmlmodel.author = "Thijs Scheepers"
-    cmlmodel.license = "MIT License"
 
-    cmlmodel.save("./coreml/ASRModel.mlmodel")
+if __name__ == '__main__':
+    main(sys.argv[1:])

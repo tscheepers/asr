@@ -38,12 +38,13 @@ class BatchLSTM(torch.nn.Module):
     def flatten_parameters(self):
         self.rnn.flatten_parameters()
 
-    def forward(self, x, h0, c0, output_lengths=None):
+    def forward(self, x, h0=None, c0=None, n_timesteps=None):
         if self.batch_norm is not None:
             x = self.batch_norm(x)
-        if output_lengths is not None:
-            x = torch.nn.utils.rnn.pack_padded_sequence(x, output_lengths)
-        x, (hn, cn) = self.rnn(x, (h0, c0))
-        if output_lengths is not None:
+        if n_timesteps is not None:
+            x = torch.nn.utils.rnn.pack_padded_sequence(x, n_timesteps)
+        h = (h0, c0) if h0 is not None and c0 is not None else None
+        x, (hn, cn) = self.rnn(x, h)
+        if n_timesteps is not None:
             x, _ = torch.nn.utils.rnn.pad_packed_sequence(x)
         return x, hn, cn
