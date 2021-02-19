@@ -11,7 +11,7 @@ extension Array where Element : FloatingPoint {
     /// The signal is centered and padded using reflection. Each frame is tapered using the Hann or Hamming function.
     ///
     /// Similar to: https://librosa.org/doc/latest/generated/librosa.stft.html
-    /// Explenation video: https://www.youtube.com/watch?v=8nZrgJjl3wc
+    /// Explanation video: https://www.youtube.com/watch?v=8nZrgJjl3wc
     ///
     /// - Parameters:
     ///     - nFFT: Length of the windowed signal. Defaults to `2048`. In any case, we recommend setting `nFFT` to a power of two for optimizing the speed of the fast Fourier transform (FFT) algorithm.

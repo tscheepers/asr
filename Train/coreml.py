@@ -3,6 +3,7 @@
 import sys
 import torch
 import coremltools as ct
+from config import Config
 from model import Model
 
 
@@ -18,7 +19,7 @@ def main(args):
     input_file, output_file = args
 
     # Load model
-    model = Model.load_from_checkpoint(input_file)
+    model = Model.load_from_checkpoint(input_file, config=Config(time_padding=False))
 
     # Set model to evaluation mode
     model.eval()

@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import sys
 import numpy as np
 import torch
@@ -34,7 +36,7 @@ def inference_all_at_once(input_file):
     spectrogram, labels = transform_into_spectrogram_labels(SAMPLE, model)
 
     # Print result from example input
-    evaluator.print_evaluation_of_sample(spectrogram, labels)
+    evaluator.print_evaluation_of_sample(spectrogram, labels, split_every=30)
 
 
 def inference_in_chunks(input_file, useful_frame_width=60):
@@ -56,8 +58,8 @@ def inference_in_chunks(input_file, useful_frame_width=60):
     padding = 15
     lookahead_overflow = model.config.lookahead_context * 2  # times two because of the strides in layer 1
     total_frame_width = padding + useful_frame_width + lookahead_overflow + padding  # add left and right padding
-    iterations = (n_timesteps // useful_frame_width) + 1
-    useful_output_width = useful_frame_width // 2  # Divide by two because of the strides in the first layer
+    iterations = (n_timesteps - lookahead_overflow) // useful_frame_width + 1
+    useful_output_width = useful_frame_width // 2  # divide by two because of the strides in the first layer
 
     lstm_hn = torch.zeros(model.config.num_layers, model.config.hidden_size).to(model.device)
     lstm_cn = torch.zeros(model.config.num_layers, model.config.hidden_size).to(model.device)
@@ -95,7 +97,8 @@ def inference_in_chunks(input_file, useful_frame_width=60):
         y, lstm_hn, lstm_cn = model(iter_spectrogram, lstm_h0=lstm_hn, lstm_c0=lstm_cn)
 
         # Omit the output with lookahead overflow
-        y = y if i == iterations - 1 else y[:useful_output_width, :]
+        until = (end - start - (0 if i == 0 else 1) * padding) // 2 if i == iterations - 1 else useful_output_width
+        y = y[:until]
 
         # Concatenate the final result
         ys = y if ys is None else torch.cat((ys, y))
