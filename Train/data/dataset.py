@@ -1,8 +1,7 @@
-import librosa
 import torch
-import re
-import numpy as np
 from typing import List
+from data.generate_spectrogram import generate_spectrogram
+from data.string_processor import StringProcessor
 from lib.spec_augment import spec_augment
 from config import Config
 
@@ -16,39 +15,6 @@ class Sample:
         return "%s [%s]" % (self.sentence, self.path)
 
 
-class StringProcessor:
-    def __init__(self):
-        self.chars = [
-            ' ', '\'', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
-            'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q',
-            'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '.'
-        ]
-        self.blank_id = self.chars.index('.')
-        self.char_to_idx = {char: idx for (idx, char) in enumerate(self.chars)}
-
-    def str_to_labels(self, string):
-        # to lower case
-        string = string.lower()
-
-        # remove all chars not in the char list
-        string = re.sub('[^a-z \']+', '', string)
-
-        # remove double spaces
-        string = re.sub(' +', ' ', string)
-
-        # remove leading and trailing spaces
-        string = string.strip()
-
-        return [self.char_to_idx[char] for char in string]
-
-    def labels_to_str(self, labels, split_every=None):
-
-        result = ''.join([self.chars[int(idx)] for idx in labels])
-        if split_every is None:
-            return result
-        return '|'.join(result[i:i + split_every] for i in range(0, len(result), split_every))
-
-
 class Dataset(torch.utils.data.Dataset):
 
     def __init__(self, samples: List[Sample], string_processor: StringProcessor, config: Config, train: bool = False):
@@ -56,11 +22,7 @@ class Dataset(torch.utils.data.Dataset):
 
         self.samples = samples
         self.train = train
-        self.spec_augment = config.spec_augment
-        self.max_timesteps = config.max_timesteps
-        self.sample_rate = config.sample_rate
-        self.window_size = config.window_size
-        self.window_stride = config.window_stride
+        self.config = config
         self.string_processor = string_processor
 
     def __len__(self):
@@ -80,22 +42,9 @@ class Dataset(torch.utils.data.Dataset):
         if n_labels == 0:
             raise Exception('Zero labels')
 
-        wave, sample_rate = librosa.load(sample.path, sr=self.sample_rate, mono=True)
+        spectrogram = torch.Tensor(generate_spectrogram(sample.path, self.config))
 
-        if sample_rate != self.sample_rate:
-            raise Exception('Sample rates mismatch %d < %d' % (sample_rate, self.sample_rate))
-
-        stft = librosa.stft(wave,
-                            n_fft=int(self.sample_rate * self.window_size),
-                            hop_length=int(self.sample_rate * self.window_stride),
-                            win_length=int(self.sample_rate * self.window_size),
-                            window='hamming')
-        magnitudes, _ = librosa.magphase(stft)
-        spectrogram = np.log1p(magnitudes)
-        spectrogram = (spectrogram - spectrogram.mean()) / spectrogram.std()
-        spectrogram = torch.Tensor(spectrogram)
-
-        if self.train and self.spec_augment:
+        if self.train and self.config.spec_augment:
             spectrogram = spec_augment(spectrogram)
 
         n_timesteps = spectrogram.shape[-1]
@@ -143,6 +92,9 @@ class LibriSpeechDataset(Dataset):
 
 
 def collate_dataset(dataset):
+    """
+    Generate a padded training batch from a dataset
+    """
     spectrograms = []
     labels = []
     n_timesteps = []
@@ -155,7 +107,7 @@ def collate_dataset(dataset):
         n_timesteps.append(ss)
         n_labels.append(ls)
 
-    spectrograms = torch.nn.utils.rnn.pad_sequence(spectrograms, batch_first=True).transpose(1, 2)  # batch, spectrogram, time
+    spectrograms = torch.nn.utils.rnn.pad_sequence(spectrograms, batch_first=True).transpose(1, 2)  # batch, spect, time
     labels = torch.nn.utils.rnn.pad_sequence(labels, batch_first=True)  # batch, time
     n_timesteps = torch.IntTensor(n_timesteps)  # batch
     n_labels = torch.IntTensor(n_labels)  # batch

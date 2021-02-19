@@ -22,3 +22,6 @@ class Config:
     conv_channels: int = 32
     tanh_min: float = 0.0
     tanh_max: float = 20.0
+    lowercase: bool = True
+    valid_chars: str = ' \'abcdefghijklmnopqrstuvwxyz'
+    blank_char: str = '.'

@@ -24,7 +24,7 @@
 # ----------------------------------------------------------------------------
 
 import torch
-from sequence_wise import SequenceWise
+from .sequence_wise import SequenceWise
 
 
 class BatchLSTM(torch.nn.Module):

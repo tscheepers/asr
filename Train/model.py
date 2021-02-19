@@ -1,18 +1,19 @@
 import pytorch_lightning
 import torch
 from config import Config
-from dataset import LibriSpeechDataset, collate_dataset, StringProcessor
+from data.dataset import LibriSpeechDataset, collate_dataset, StringProcessor
 from lib.layers import MaskConv, SequenceWise, BatchLSTM, Lookahead
 from lib.decoding import WordErrorRate, CharErrorRate, GreedyDecoder
 
 
 class Model(pytorch_lightning.core.lightning.LightningModule):
 
-    def __init__(self, config=Config(), string_processor=StringProcessor()):
+    def __init__(self, config=Config(), string_processor: StringProcessor = None):
         super(Model, self).__init__()
 
         self.config = config
-        self.string_processor = string_processor
+        self.string_processor = string_processor = \
+            StringProcessor(config) if string_processor is None else string_processor
 
         # STFT outputs nFFT / 2 + 1 features
         input_size = int(config.sample_rate * config.window_size) // 2 + 1

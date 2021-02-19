@@ -1,117 +1,123 @@
-import librosa
+import sys
 import numpy as np
 import torch
-from ctcdecode import CTCBeamDecoder
-
 from config import Config
+from data.generate_spectrogram import generate_spectrogram
 from qualitative_evaluation import QualitativeEvaluator
 from model import Model
 
-
-def sample(model):
-    sentence = "in eighteen sixty two a law was enacted with the purpose of suppressing plural marriage and as had " \
-               "been predicted in the national senate prior to its passage it lay for many years a dead letter"
-    labels = model.string_processor.str_to_labels(sentence)
-
-    wave, sample_rate = librosa.load('../Tests/Fixtures/librispeech-sample.wav', sr=model.config.sample_rate, mono=True)
-    stft = librosa.stft(wave,
-                        n_fft=int(model.config.sample_rate * model.config.window_size),
-                        hop_length=int(model.config.sample_rate * model.config.window_stride),
-                        win_length=int(model.config.sample_rate * model.config.window_size),
-                        window='hamming')
-    magnitudes, _ = librosa.magphase(stft)
-    spectrogram = np.log1p(magnitudes)
-    spectrogram = (spectrogram - spectrogram.mean()) / spectrogram.std()
-
-    return spectrogram, labels
+SAMPLE = (
+    '../Tests/Fixtures/librispeech-sample.wav',
+    'in eighteen sixty two a law was enacted with the purpose of suppressing plural marriage and as had ' \
+    'been predicted in the national senate prior to its passage it lay for many years a dead letter'
+)
 
 
-def regular():
-    model = Model.load_from_checkpoint(
-        './checkpoints-fine-tuning-padding-fix/epoch=12-step=223357.ckpt',
-        config=Config(time_padding=True)
-    )
+def transform_into_spectrogram_labels(sample, model):
+    filename, sentence = sample
+    return generate_spectrogram(filename, model.config), model.string_processor.str_to_labels(sentence)
 
+
+def inference_all_at_once(input_file):
+    # Load model
+    model = Model.load_from_checkpoint(input_file, config=Config(time_padding=True))
+
+    # Set model to evaluation mode
     model.eval()
     model.zero_grad()
     torch.set_grad_enabled(False)
 
-    evaluator = QualitativeEvaluator(
-        model,
-        model.string_processor,
-        CTCBeamDecoder(
-            model.string_processor.chars,
-            beam_width=100,
-            blank_id=model.string_processor.blank_id,
-            log_probs_input=True
-        )
-    )
+    # Create evaluator
+    evaluator = QualitativeEvaluator(model)
 
-    spectrogram, labels = sample(model)
-    evaluator.print_evaluation_of_sample(spectrogram[:,:1150], labels)
+    # Get example input
+    spectrogram, labels = transform_into_spectrogram_labels(SAMPLE, model)
+
+    # Print result from example input
+    evaluator.print_evaluation_of_sample(spectrogram, labels)
 
 
-def streaming():
-    model = Model.load_from_checkpoint(
-        './checkpoints-fine-tuning-padding-fix/epoch=12-step=223357.ckpt',
-        config=Config(time_padding=False)
-    )
+def inference_in_chunks(input_file, useful_frame_width=60):
+    # Load model, disable padding because we will pad the input ourselves
+    model = Model.load_from_checkpoint(input_file, config=Config(time_padding=False))
 
+    # Set model to evaluation mode
     model.eval()
     model.zero_grad()
     torch.set_grad_enabled(False)
 
-    evaluator = QualitativeEvaluator(
-        model,
-        model.string_processor,
-        CTCBeamDecoder(
-            model.string_processor.chars,
-            beam_width=100,
-            blank_id=model.string_processor.blank_id,
-            log_probs_input=True
-        )
-    )
+    # Create evaluator
+    evaluator = QualitativeEvaluator(model)
 
-    spectrogram, labels = sample(model)
+    # Get example input
+    spectrogram, labels = transform_into_spectrogram_labels(SAMPLE, model)
+    n_features, n_timesteps = spectrogram.shape
 
-    features = spectrogram.shape[0]
-    timesteps = spectrogram.shape[1]
-
-    timesteps_per_iteration = 100
-    lookahead = 40
     padding = 15
-    frame_width = timesteps_per_iteration + 2 * padding
-    iterations = (timesteps // (timesteps_per_iteration - lookahead))
-    take_each_iteration = (timesteps_per_iteration - lookahead) // 2
+    lookahead_overflow = model.config.lookahead_context * 2  # times two because of the strides in layer 1
+    total_frame_width = padding + useful_frame_width + lookahead_overflow + padding  # add left and right padding
+    iterations = (n_timesteps // useful_frame_width) + 1
+    useful_output_width = useful_frame_width // 2  # Divide by two because of the strides in the first layer
 
     lstm_hn = torch.zeros(model.config.num_layers, model.config.hidden_size).to(model.device)
     lstm_cn = torch.zeros(model.config.num_layers, model.config.hidden_size).to(model.device)
     ys = None
 
+    # Example below illustrates the chunking for 3 iterations:
+    # -----|--------------------------------|-----
+    #   0  | Entire input spectrogram       |  0
+    # -----|--------|-----------------------|-----
+    # | LP | UF     | LO  | RP |
+    # -----|--------|--------|--------------------
+    #          | LP | UF     | LO  | RP |
+    # --------------|--------|--------------|-----
+    #                   | LP | UF     | LO  | RP |
+    # -----------------------|--------------|-----
+    # PL = Left padding, RP = Right padding
+    # UF = Useful frame, LO = Lookahead overflow
+    #
+    # Outputs from iterations:
+    # -----|--------|--------|--------------|-----
+    #      | 1      | 2      | 3            |
+    # -----|--------|--------|--------------|-----
     for i in range(iterations):
-        start = i * (timesteps_per_iteration - lookahead) - padding
-        offsetLeft = -min(start, 0)
-        c_start = max(start, 0)
+        start = 0 if i == 0 else i * useful_frame_width - padding
+        end = n_timesteps if i == iterations - 1 else (i+1) * useful_frame_width + lookahead_overflow + padding
 
-        end = (i + 1) * (timesteps_per_iteration - lookahead) + padding + lookahead
-        offsetRight = max(iterations * timesteps_per_iteration, end) - iterations * timesteps_per_iteration
-        c_end = min(end, iterations * timesteps_per_iteration)
+        iter_start = padding if i == 0 else 0
+        iter_end = iter_start + end - start
 
-        iter_spectrogram = np.zeros((features, frame_width))
-        iter_spectrogram[:, offsetLeft:(timesteps_per_iteration + (padding - offsetRight) + offsetLeft + (padding - offsetLeft))] = spectrogram[:, c_start:c_end]
+        iter_spectrogram = np.zeros((n_features, total_frame_width))
+        iter_spectrogram[:, iter_start:iter_end] = spectrogram[:, start:end]
         iter_spectrogram = torch.Tensor(iter_spectrogram, device=model.device)
 
+        # Pass in lstm_hn and lstm_cn from the previous iteration, so the hidden states are preserved
         y, lstm_hn, lstm_cn = model(iter_spectrogram, lstm_h0=lstm_hn, lstm_c0=lstm_cn)
-        y = y[:take_each_iteration,:]
+
+        # Omit the output with lookahead overflow
+        y = y if i == iterations - 1 else y[:useful_output_width, :]
+
+        # Concatenate the final result
         ys = y if ys is None else torch.cat((ys, y))
 
-    evaluator.print_evaluation_of_output(ys, labels, split_every=take_each_iteration)
+    # Print result from example input
+    evaluator.print_evaluation_of_output(ys, labels, split_every=useful_output_width)
 
-    return ys.numpy()
+
+def main(args):
+    if len(args) != 1:
+        print('Please provide a model checkpoint to use: streaming_inference.py <inputfile.ckpt>')
+        sys.exit(2)
+
+    checkpoint = args[0]
+
+    print("Inference all at once (non-streaming):")
+    inference_all_at_once(checkpoint)
+
+    print('------------------------------------------')
+    print("Inference in chunks (ready for streaming):")
+    inference_in_chunks(checkpoint)
 
 
 if __name__ == '__main__':
-    print("Regular")
-    regular()
-    print("Streaming")
-    streaming()
+    main(sys.argv[1:])

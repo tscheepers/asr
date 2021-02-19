@@ -2,7 +2,6 @@ import pytorch_lightning
 import torch
 from ctcdecode import CTCBeamDecoder
 from model import Model
-from dataset import StringProcessor
 import Levenshtein as Lev
 
 
@@ -12,10 +11,15 @@ class QualitativeEvaluator:
     This can be helpful to see if the model is producing sensible output.
     """
 
-    def __init__(self, model: Model, string_processor: StringProcessor, beam_search: CTCBeamDecoder, print_beams: int = 5):
+    def __init__(self, model: Model, beam_search: CTCBeamDecoder = None, print_beams: int = 5):
         self.model = model
-        self.string_processor = string_processor
-        self.beam_search = beam_search
+        self.string_processor = model.string_processor
+        self.beam_search = CTCBeamDecoder(
+            model.string_processor.chars,
+            beam_width=100,
+            blank_id=model.string_processor.blank_id,
+            log_probs_input=True
+        ) if beam_search is None else beam_search
         self.print_beams = print_beams
 
     def print_evaluation_of_sample(self, spectrogram, labels, split_every=None):
@@ -23,7 +27,7 @@ class QualitativeEvaluator:
         Evaluate the model using reference labels and print their result to the console
         """
         spectrogram = torch.Tensor(spectrogram).to(self.model.device)
-        y, _, _ = self.model.forward(spectrogram)
+        y = self.model.forward(spectrogram)
         self.print_evaluation_of_output(y, labels, split_every=split_every)
 
     def print_evaluation_of_output(self, log_probabilities, labels, split_every=30):
