@@ -1,0 +1,9 @@
+coremltools==4.1
+ctcdecode @ git+https://github.com/parlance/ctcdecode.git/@9a20e00f34d8f605f4a8501cc42b1a53231f1597
+librosa==0.8.0
+numpy==1.19.5
+python-Levenshtein==0.12.2
+pytorch-lightning==1.1.6
+sox==1.4.1
+torch==1.7.1+cu110
+torchaudio==0.7.2
