@@ -25,3 +25,6 @@ class Config:
     lowercase: bool = True
     valid_chars: str = ' \'abcdefghijklmnopqrstuvwxyz'
     blank_char: str = '.'
+    train_file: str = '/home/thijs/Datasets/LibriSpeech/prepared_train_transcriptions.tsv'
+    val_file: str = '/home/thijs/Datasets/LibriSpeech/prepared_dev_transcriptions.tsv'
+    test_file: str = '/home/thijs/Datasets/LibriSpeech/prepared_test_transcriptions.tsv'

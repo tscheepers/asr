@@ -1,7 +1,8 @@
 import pytorch_lightning
 import torch
 from config import Config
-from data.dataset import LibriSpeechDataset, collate_dataset, StringProcessor
+from data.dataset import collate_dataset, Dataset
+from data.string_processor import StringProcessor
 from lib.layers import MaskConv, SequenceWise, BatchLSTM, Lookahead
 from lib.decoding import WordErrorRate, CharErrorRate, GreedyDecoder
 
@@ -74,18 +75,9 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         self.cer = CharErrorRate(decoder=self.evaluation_decoder, target_decoder=self.evaluation_decoder)
 
         # Datasets
-        self.train_dataset = LibriSpeechDataset(
-            string_processor, config, train=True,
-            filepath='/home/thijs/Datasets/LibriSpeech/train_transcriptions.tsv'
-        )
-        self.test_dataset = LibriSpeechDataset(
-            string_processor, config,
-            filepath='/home/thijs/Datasets/LibriSpeech/test_transcriptions.tsv'
-        )
-        self.val_dataset = LibriSpeechDataset(
-            string_processor, config,
-            filepath='/home/thijs/Datasets/LibriSpeech/dev_transcriptions.tsv'
-        )
+        self.train_dataset = Dataset(config.train_file, string_processor, config, train=True)
+        self.test_dataset = Dataset(config.test_file, string_processor, config)
+        self.val_dataset = Dataset(config.val_file, string_processor, config)
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(
