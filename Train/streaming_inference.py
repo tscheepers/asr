@@ -3,10 +3,10 @@
 import sys
 import numpy as np
 import torch
-from config import Config
 from data.generate_spectrogram import generate_spectrogram
 from qualitative_evaluation import QualitativeEvaluator
-from model import Model
+from model.cnn_rnn_lookahead_acoustic_model import CnnRnnLookaheadAcousticModel as Model
+from model.cnn_rnn_lookahead_acoustic_model import CnnRnnLookaheadAcousticModelConfig as Config
 
 SAMPLE = (
     '../Tests/Fixtures/librispeech-sample.wav',
@@ -22,7 +22,7 @@ def transform_into_spectrogram_labels(sample, model):
 
 def inference_all_at_once(input_file):
     # Load model
-    model = Model.load_from_checkpoint(input_file, config=Config(time_padding=True))
+    model = Model.load_from_checkpoint(input_file, model_config=Config(time_padding=True))
 
     # Set model to evaluation mode
     model.eval()
@@ -41,7 +41,7 @@ def inference_all_at_once(input_file):
 
 def inference_in_chunks(input_file, useful_frame_width=60):
     # Load model, disable padding because we will pad the input ourselves
-    model = Model.load_from_checkpoint(input_file, config=Config(time_padding=False))
+    model = Model.load_from_checkpoint(input_file, model_config=Config(time_padding=False))
 
     # Set model to evaluation mode
     model.eval()

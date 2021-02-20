@@ -1,9 +1,9 @@
 import re
-from config import Config
+from data.dataset import DatasetConfig
 
 
 class StringProcessor:
-    def __init__(self, config: Config):
+    def __init__(self, config: DatasetConfig):
         self.lowercase = config.lowercase
         self.chars = [c for c in config.valid_chars]
 

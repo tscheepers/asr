@@ -1,37 +1,61 @@
 import pytorch_lightning
 import torch
-from config import Config
-from data.dataset import collate_dataset, Dataset
+from data.dataset import collate_dataset, Dataset, DatasetConfig
 from data.string_processor import StringProcessor
 from lib.layers import MaskConv, SequenceWise, BatchLSTM, Lookahead
 from lib.decoding import WordErrorRate, CharErrorRate, GreedyDecoder
+from dataclasses import dataclass
 
 
-class Model(pytorch_lightning.core.lightning.LightningModule):
+@dataclass
+class CnnRnnLookaheadAcousticModelConfig:
+    time_padding: bool = True
+    hidden_size: int = 1024
+    num_rnn_layers: int = 5
+    lookahead_context: int = 20
+    conv_channels: int = 32
+    tanh_min: float = 0.0
+    tanh_max: float = 20.0
+    learning_rate: float = 1e-3
+    adam_eps: float = 1e-8
+    adam_betas: (float, float) = (0.9, 0.999)
+    weight_decay: float = 1e-5
+    lr_gamma: float = 0.99
 
-    def __init__(self, config=Config(), string_processor: StringProcessor = None):
-        super(Model, self).__init__()
 
-        self.config = config
+class CnnRnnLookaheadAcousticModel(pytorch_lightning.core.lightning.LightningModule):
+
+    def __init__(
+            self, model_config=CnnRnnLookaheadAcousticModelConfig(),
+            data_config=DatasetConfig(), string_processor: StringProcessor = None
+    ):
+        """
+        This model is a streaming compatible variation on the DeepSpeech 2 paper:
+        2x CNN -> Nx LSTM -> Lookahead -> FC
+        """
+        super(CnnRnnLookaheadAcousticModel, self).__init__()
+
+        self.model_config = model_config
+        self.data_config = data_config
         self.string_processor = string_processor = \
-            StringProcessor(config) if string_processor is None else string_processor
+            StringProcessor(data_config) if string_processor is None else string_processor
 
         # STFT outputs nFFT / 2 + 1 features
-        input_size = int(config.sample_rate * config.window_size) // 2 + 1
+        input_size = int(data_config.sample_rate * data_config.window_size) // 2 + 1
 
         # When training we should use zero padding on the time dimension
         # When performing streaming inference we should not
-        time_padding = 15 if self.config.time_padding else 0
+        time_padding = 15 if model_config.time_padding else 0
 
         # Layer 1-2: 2 x Convolutional layers
-        n_channels = config.conv_channels
+        n_channels = model_config.conv_channels
         self.conv = MaskConv(torch.nn.Sequential(
             torch.nn.Conv2d(1, n_channels, kernel_size=(41, 11), stride=(2, 2), padding=(20, time_padding)),
             torch.nn.BatchNorm2d(n_channels),
-            torch.nn.Hardtanh(config.tanh_min, config.tanh_max, inplace=True),
+            torch.nn.Hardtanh(model_config.tanh_min, model_config.tanh_max, inplace=True),
             torch.nn.Conv2d(n_channels, n_channels, kernel_size=(21, 11), stride=(2, 1), padding=(10, 0)),
             torch.nn.BatchNorm2d(n_channels),
-            torch.nn.Hardtanh(config.tanh_min, config.tanh_max, inplace=True)
+            torch.nn.Hardtanh(model_config.tanh_min, model_config.tanh_max, inplace=True)
         ))
 
         # Based on above convolutions and spectrogram size using conv formula (W - F + 2P)/ S+1
@@ -43,27 +67,27 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         self.rnns = torch.nn.Sequential(
             BatchLSTM(
                 input_size=rnn_input_size,
-                hidden_size=config.hidden_size,
+                hidden_size=model_config.hidden_size,
                 batch_norm=False
             ),
             *(
                 BatchLSTM(
-                    input_size=config.hidden_size,
-                    hidden_size=config.hidden_size,
-                ) for _ in range(config.num_layers - 1)
+                    input_size=model_config.hidden_size,
+                    hidden_size=model_config.hidden_size,
+                ) for _ in range(model_config.num_rnn_layers - 1)
             )
         )
 
         # Layer 9: Lookahead layer
         self.lookahead = torch.nn.Sequential(
-            Lookahead(config.hidden_size, context=config.lookahead_context),
-            torch.nn.Hardtanh(config.tanh_min, config.tanh_max, inplace=True)
+            Lookahead(model_config.hidden_size, context=model_config.lookahead_context),
+            torch.nn.Hardtanh(model_config.tanh_min, model_config.tanh_max, inplace=True)
         )
 
         # Layer 10: Fully connected layer
         self.fc = SequenceWise(torch.nn.Sequential(
-            torch.nn.BatchNorm1d(config.hidden_size),
-            torch.nn.Linear(config.hidden_size, len(string_processor.chars), bias=False)
+            torch.nn.BatchNorm1d(model_config.hidden_size),
+            torch.nn.Linear(model_config.hidden_size, len(string_processor.chars), bias=False)
         ))
 
         # Loss function
@@ -75,22 +99,22 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
         self.cer = CharErrorRate(decoder=self.evaluation_decoder, target_decoder=self.evaluation_decoder)
 
         # Datasets
-        self.train_dataset = Dataset(config.train_file, string_processor, config, train=True)
-        self.test_dataset = Dataset(config.test_file, string_processor, config)
-        self.val_dataset = Dataset(config.val_file, string_processor, config)
+        self.train_dataset = Dataset(data_config.train_file, string_processor, data_config, train=True)
+        self.test_dataset = Dataset(data_config.test_file, string_processor, data_config)
+        self.val_dataset = Dataset(data_config.val_file, string_processor, data_config)
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(
             params=self.parameters(),
-            lr=self.config.learning_rate,
-            eps=self.config.adam_eps,
-            betas=self.config.adam_betas,
-            weight_decay=self.config.weight_decay
+            lr=self.model_config.learning_rate,
+            eps=self.model_config.adam_eps,
+            betas=self.model_config.adam_betas,
+            weight_decay=self.model_config.weight_decay
         )
 
         scheduler = torch.optim.lr_scheduler.ExponentialLR(
             optimizer=optimizer,
-            gamma=self.config.lr_gamma
+            gamma=self.model_config.lr_gamma
         )
 
         return [optimizer], [scheduler]
@@ -118,7 +142,7 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
                 lstm_h0 = lstm_h0.unsqueeze(1)
                 lstm_c0 = lstm_c0.unsqueeze(1)
 
-            timestep_for_lstm_output = x.size()[0] - self.config.lookahead_context
+            timestep_for_lstm_output = x.size()[0] - self.model_config.lookahead_context
             if timestep_for_lstm_output <= 0:
                 raise Exception("Could not return LSTM hidden state because frame is too small")
 
@@ -181,23 +205,23 @@ class Model(pytorch_lightning.core.lightning.LightningModule):
     def train_dataloader(self):
         return torch.utils.data.DataLoader(
             dataset=self.train_dataset,
-            batch_size=self.config.batch_size,
+            batch_size=self.data_config.batch_size,
             collate_fn=collate_dataset,
-            num_workers=self.config.num_workers
+            num_workers=self.data_config.num_workers
         )
 
     def val_dataloader(self):
         return torch.utils.data.DataLoader(
             dataset=self.val_dataset,
-            batch_size=self.config.batch_size,
+            batch_size=self.data_config.batch_size,
             collate_fn=collate_dataset,
-            num_workers=self.config.num_workers
+            num_workers=self.data_config.num_workers
         )
 
     def test_dataloader(self):
         return torch.utils.data.DataLoader(
             dataset=self.test_dataset,
-            batch_size=self.config.batch_size,
+            batch_size=self.data_config.batch_size,
             collate_fn=collate_dataset,
-            num_workers=self.config.num_workers
+            num_workers=self.data_config.num_workers
         )

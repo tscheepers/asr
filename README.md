@@ -32,7 +32,7 @@ Example `train.tsv` file:
 ```
 
 ### Training to-dos: 
-- [x] Write ASR model ready for streaming inference, uni-directional LSTM with lookahead  [`code`](Train/model.py)
+- [x] Write ASR model ready for streaming inference, uni-directional LSTM with lookahead  [`code`](Train/model/cnn_rnn_lookahead_acoustic_model.py)
 - [x] Implement streaming inference proof-of-concept [`code`](Train/streaming_inference.py)
 - [x] Train on LibriSpeech (English)
 - [x] Export the model using coremltools [`code`](Train/coreml.py)

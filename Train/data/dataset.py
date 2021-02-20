@@ -2,8 +2,24 @@ import torch
 from data.generate_spectrogram import generate_spectrogram
 from data.string_processor import StringProcessor
 from lib.spec_augment import spec_augment
-from config import Config
 from dataclasses import dataclass
+
+
+@dataclass
+class DatasetConfig:
+    batch_size: int = 16
+    sample_rate: int = 16000
+    window_size: float = 0.02
+    window_stride: float = 0.01
+    max_timesteps: int = 4000
+    spec_augment: bool = True
+    num_workers: int = 16
+    lowercase: bool = True
+    valid_chars: str = ' \'abcdefghijklmnopqrstuvwxyz'
+    blank_char: str = '.'
+    train_file: str = '/home/thijs/Datasets/LibriSpeech/prepared_train_transcriptions.tsv'
+    val_file: str = '/home/thijs/Datasets/LibriSpeech/prepared_dev_transcriptions.tsv'
+    test_file: str = '/home/thijs/Datasets/LibriSpeech/prepared_test_transcriptions.tsv'
 
 
 @dataclass
@@ -14,7 +30,7 @@ class Sample:
 
 class Dataset(torch.utils.data.Dataset):
 
-    def __init__(self, file: str, string_processor: StringProcessor, config: Config, train: bool = False):
+    def __init__(self, file: str, string_processor: StringProcessor, config: DatasetConfig, train: bool = False):
         super(Dataset, self).__init__()
 
         self.samples = []

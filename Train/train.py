@@ -2,8 +2,16 @@
 
 import sys
 import pytorch_lightning
+from dataclasses import dataclass
 from qualitative_evaluation import QualitativeEvaluationCallback
-from model import Model
+from model.cnn_rnn_lookahead_acoustic_model import CnnRnnLookaheadAcousticModel as Model
+
+
+@dataclass
+class TrainConfig:
+    max_epochs: int = 200
+    gradient_clip_val: int = 400
+    val_check_interval: int = 2500
 
 
 def main(args):
@@ -20,12 +28,13 @@ def main(args):
     else:
         model = Model()
 
+    train_config = TrainConfig()
     pytorch_lightning.Trainer(
-        max_epochs=1000, gpus=1,
-        gradient_clip_val=400,
-        progress_bar_refresh_rate=5,
+        max_epochs=train_config.max_epochs,
+        gradient_clip_val=train_config.gradient_clip_val,
+        gpus=1,
         resume_from_checkpoint=checkpoint,
-        val_check_interval=2500,
+        val_check_interval=train_config.val_check_interval,
         weights_summary='full',
         callbacks=[
             QualitativeEvaluationCallback(),
@@ -34,7 +43,7 @@ def main(args):
                 save_top_k=5, save_last=True, mode='min'
             )
         ],
-        logger=pytorch_lightning.loggers.TensorBoardLogger('./logs', name='speech_recognition')
+        logger=pytorch_lightning.loggers.TensorBoardLogger('./logs', name='cnn_rnn_lookahead_acoustic_model')
     ).fit(model)
 
 

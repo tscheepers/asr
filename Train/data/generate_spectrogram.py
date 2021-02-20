@@ -1,6 +1,6 @@
 import librosa
 import numpy as np
-from config import Config
+from model.config import Config
 
 
 def generate_spectrogram(filename, config: Config):

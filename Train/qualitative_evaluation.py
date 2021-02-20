@@ -1,7 +1,7 @@
 import pytorch_lightning
 import torch
 from ctcdecode import CTCBeamDecoder
-from model import Model
+from model.cnn_rnn_lookahead_acoustic_model import CnnRnnLookaheadAcousticModel as Model
 import Levenshtein as Lev
 
 

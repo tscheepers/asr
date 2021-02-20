@@ -3,8 +3,8 @@
 import sys
 import torch
 import coremltools as ct
-from config import Config
-from model import Model
+from model.cnn_rnn_lookahead_acoustic_model import CnnRnnLookaheadAcousticModel as Model
+from model.cnn_rnn_lookahead_acoustic_model import CnnRnnLookaheadAcousticModelConfig as Config
 
 
 def main(args):
@@ -19,7 +19,7 @@ def main(args):
     input_file, output_file = args
 
     # Load model
-    model = Model.load_from_checkpoint(input_file, config=Config(time_padding=False))
+    model = Model.load_from_checkpoint(input_file, model_config=Config(time_padding=False))
 
     # Set model to evaluation mode
     model.eval()
