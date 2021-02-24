@@ -16,7 +16,7 @@ class SpectrogramRenderer {
 
     private let vertexBuffer: MTLBuffer
 
-    private let device: MTLDevice
+    let device: MTLDevice
 
     weak var delegate: SpectrogramRendererDelegate?
 

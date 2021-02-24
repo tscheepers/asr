@@ -4,9 +4,9 @@ import AVFoundation
 
 class SpectrogramViewController: UIViewController {
 
-    var renderer: SpectrogramRenderer = SpectrogramRenderer()
+    let renderer: SpectrogramRenderer = SpectrogramRenderer()
 
-    var spectrogramSource: MicrophoneSpectrogramSource = MicrophoneSpectrogramSource()
+    var spectrogramSource: FileSpectrogramSource!
 
     var metalLayer: CAMetalLayer!
 
@@ -15,8 +15,8 @@ class SpectrogramViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // TO-DO: renderer.delegate = spectrogramSource
-        spectrogramSource.start()
+        spectrogramSource = FileSpectrogramSource(named: "librispeech-sample", device: renderer.device)
+        renderer.delegate = spectrogramSource
 
         metalLayer = renderer.createMetalLayer(frame: view.layer.frame)
         view.layer.addSublayer(metalLayer)

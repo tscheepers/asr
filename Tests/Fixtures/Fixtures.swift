@@ -4,7 +4,7 @@ import AVFoundation
 class Fixtures {
 
     /// An audiofile from the LibriSpeech dataset
-    static let libriSpeechSample : [Float] = Fixtures.loadAudioWave(named: "librispeech-sample")
+    static let libriSpeechSample : [Float] = FileSpectrogramSource.loadAudioWave(named: "librispeech-sample")
 
     /// Generated output to test STFT (generated with librosa and the hann window function)
     static let stftOutput : [[Complex<Float>]] = Fixtures.loadComplexCSV(named: "STFTOutput")
@@ -43,18 +43,6 @@ class Fixtures {
                 let c = s.components(separatedBy: ";").map { $0.trimmingCharacters(in: .whitespaces) }
                 return (Float(Double(c.first!)!), Float(Double(c.last!)!))
             } }
-    }
-
-    /// Method to load audio wave from wav file
-    static func loadAudioWave(named: String, sampleRate: Double? = 16_000) -> [Float] {
-        let url =  Bundle(for: Self.self).url(forResource: named, withExtension: "wav")
-        let file = try! AVAudioFile(forReading: url!)
-        let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: sampleRate ?? file.fileFormat.sampleRate, channels: 1, interleaved: false)!
-
-        let buf = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 1024 * 1024)!
-        try! file.read(into: buf)
-
-        return buf.unsafeToVector()
     }
 
 }

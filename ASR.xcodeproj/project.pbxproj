@@ -42,6 +42,11 @@
 		767371B525E68247004D6454 /* MicrophoneSpectrogramSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 767371B425E68247004D6454 /* MicrophoneSpectrogramSource.swift */; };
 		767371BE25E69652004D6454 /* AVFoundation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 767371BD25E69652004D6454 /* AVFoundation.swift */; };
 		767371BF25E69652004D6454 /* AVFoundation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 767371BD25E69652004D6454 /* AVFoundation.swift */; };
+		767371C425E6A296004D6454 /* MicrophoneSpectrogramSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 767371B425E68247004D6454 /* MicrophoneSpectrogramSource.swift */; };
+		767371CA25E6A2AC004D6454 /* FileSpectrogramSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 767371C925E6A2AC004D6454 /* FileSpectrogramSource.swift */; };
+		767371CB25E6A2AC004D6454 /* FileSpectrogramSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 767371C925E6A2AC004D6454 /* FileSpectrogramSource.swift */; };
+		767371CF25E6A4BC004D6454 /* Matrix+Metal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 767371CE25E6A4BC004D6454 /* Matrix+Metal.swift */; };
+		767371D025E6A4BC004D6454 /* Matrix+Metal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 767371CE25E6A4BC004D6454 /* Matrix+Metal.swift */; };
 		76A053B025DC04F80037E70F /* ASRModel.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 76A053AF25DC04F80037E70F /* ASRModel.mlmodel */; };
 		76A053B125DC04F80037E70F /* ASRModel.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 76A053AF25DC04F80037E70F /* ASRModel.mlmodel */; };
 		76A1F13F25D7CBDD00B2DC7A /* STFTHammingOutput.csv in Resources */ = {isa = PBXBuildFile; fileRef = 76A1F13E25D7CBDD00B2DC7A /* STFTHammingOutput.csv */; };
@@ -89,6 +94,8 @@
 		767371B025E68076004D6454 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
 		767371B425E68247004D6454 /* MicrophoneSpectrogramSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrophoneSpectrogramSource.swift; sourceTree = "<group>"; };
 		767371BD25E69652004D6454 /* AVFoundation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVFoundation.swift; sourceTree = "<group>"; };
+		767371C925E6A2AC004D6454 /* FileSpectrogramSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSpectrogramSource.swift; sourceTree = "<group>"; };
+		767371CE25E6A4BC004D6454 /* Matrix+Metal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Matrix+Metal.swift"; sourceTree = "<group>"; };
 		76A053AF25DC04F80037E70F /* ASRModel.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = ASRModel.mlmodel; sourceTree = "<group>"; };
 		76A1F13E25D7CBDD00B2DC7A /* STFTHammingOutput.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = STFTHammingOutput.csv; sourceTree = "<group>"; };
 		76B9BAE725D59339000AADCC /* ASR.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ASR.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -157,13 +164,14 @@
 		76608DA625D6AAA2000C6BE5 /* Numeric */ = {
 			isa = PBXGroup;
 			children = (
-				76608DA725D6AAA2000C6BE5 /* Vector+STFT.swift */,
-				76608DA825D6AAA2000C6BE5 /* Matrix+vDSP.swift */,
 				76608DA925D6AAA2000C6BE5 /* ComplexMatrix.swift */,
 				76608DAA25D6AAA2000C6BE5 /* Matrix.swift */,
-				76608DAB25D6AAA2000C6BE5 /* Matrix+DFT.swift */,
 				76608DC025D6ACF6000C6BE5 /* Matrix+CoreML.swift */,
+				76608DAB25D6AAA2000C6BE5 /* Matrix+DFT.swift */,
+				767371CE25E6A4BC004D6454 /* Matrix+Metal.swift */,
+				76608DA825D6AAA2000C6BE5 /* Matrix+vDSP.swift */,
 				76608DE825D6BC1A000C6BE5 /* Vector.swift */,
+				76608DA725D6AAA2000C6BE5 /* Vector+STFT.swift */,
 			);
 			name = Numeric;
 			path = Source/Numeric;
@@ -183,7 +191,6 @@
 				767371A625E67F8E004D6454 /* SpectrogramViewController.swift */,
 				767371AC25E67F98004D6454 /* SpectrogramRenderer.swift */,
 				767371B025E68076004D6454 /* Shaders.metal */,
-				767371B425E68247004D6454 /* MicrophoneSpectrogramSource.swift */,
 			);
 			path = SpectrogramRenderer;
 			sourceTree = "<group>";
@@ -192,6 +199,8 @@
 			isa = PBXGroup;
 			children = (
 				767371BD25E69652004D6454 /* AVFoundation.swift */,
+				767371B425E68247004D6454 /* MicrophoneSpectrogramSource.swift */,
+				767371C925E6A2AC004D6454 /* FileSpectrogramSource.swift */,
 			);
 			path = Audio;
 			sourceTree = "<group>";
@@ -353,6 +362,7 @@
 			files = (
 				76608DA325D6AA6E000C6BE5 /* DeepSpeech.mlmodel in Sources */,
 				76608DAC25D6AAA2000C6BE5 /* Vector+STFT.swift in Sources */,
+				767371CA25E6A2AC004D6454 /* FileSpectrogramSource.swift in Sources */,
 				76A053B025DC04F80037E70F /* ASRModel.mlmodel in Sources */,
 				767371AD25E67F98004D6454 /* SpectrogramRenderer.swift in Sources */,
 				76608DAF25D6AAA2000C6BE5 /* Matrix.swift in Sources */,
@@ -363,6 +373,7 @@
 				767371B125E68076004D6454 /* Shaders.metal in Sources */,
 				76608DAE25D6AAA2000C6BE5 /* ComplexMatrix.swift in Sources */,
 				76608DC125D6ACF6000C6BE5 /* Matrix+CoreML.swift in Sources */,
+				767371CF25E6A4BC004D6454 /* Matrix+Metal.swift in Sources */,
 				76608DB025D6AAA2000C6BE5 /* Matrix+DFT.swift in Sources */,
 				767371A725E67F8E004D6454 /* SpectrogramViewController.swift in Sources */,
 				76608DBA25D6AAD6000C6BE5 /* ASR.swift in Sources */,
@@ -377,15 +388,18 @@
 			files = (
 				76608DDD25D6B9D0000C6BE5 /* ASRTests.swift in Sources */,
 				76608DC825D6B070000C6BE5 /* Matrix.swift in Sources */,
+				767371CB25E6A2AC004D6454 /* FileSpectrogramSource.swift in Sources */,
 				76608DCA25D6B070000C6BE5 /* Matrix+CoreML.swift in Sources */,
 				76608DC925D6B070000C6BE5 /* Matrix+vDSP.swift in Sources */,
 				76608DE525D6BA88000C6BE5 /* DeepSpeech.mlmodel in Sources */,
 				76A053B125DC04F80037E70F /* ASRModel.mlmodel in Sources */,
 				7640CE0525D69CBB006993BF /* MatrixTests.swift in Sources */,
 				76608DC625D6B070000C6BE5 /* Vector+STFT.swift in Sources */,
+				767371C425E6A296004D6454 /* MicrophoneSpectrogramSource.swift in Sources */,
 				76608DE225D6B9D4000C6BE5 /* ASR.swift in Sources */,
 				7640CE0325D69CBB006993BF /* Fixtures.swift in Sources */,
 				7640CE0925D69CBB006993BF /* VectorTests.swift in Sources */,
+				767371D025E6A4BC004D6454 /* Matrix+Metal.swift in Sources */,
 				767371BF25E69652004D6454 /* AVFoundation.swift in Sources */,
 				76608DEC25D6BC1E000C6BE5 /* Vector.swift in Sources */,
 				76608DCB25D6B070000C6BE5 /* ComplexMatrix.swift in Sources */,
