@@ -27,7 +27,7 @@ extension Matrix where T == Float {
         var reuseSetup: vDSP_DFT_Setup? = nil
 
         for i in (0..<self.height) {
-            let (reals, imags, fftSetup) = discreteFourierTransform(reals: self[i], reuseSetup: reuseSetup)
+            let (reals, imags, fftSetup) = [Float].discreteFourierTransform(reals: self[i], reuseSetup: reuseSetup)
             flatReals += reals
             flatImags += imags
             reuseSetup = fftSetup
@@ -41,33 +41,36 @@ extension Matrix where T == Float {
     }
 }
 
-fileprivate func discreteFourierTransform(reals: [Float], imags: [Float]? = nil, reuseSetup: vDSP_DFT_Setup? = nil) -> ([Float], [Float], vDSP_DFT_Setup) {
+extension Array where Element == Float {
 
-    let realsIn: [Float] = reals
-    let imagsIn: [Float] = imags ?? [Float](repeating: 0.0, count: reals.count)
+    static func discreteFourierTransform(reals: [Float], imags: [Float]? = nil, reuseSetup: vDSP_DFT_Setup? = nil) -> ([Float], [Float], vDSP_DFT_Setup) {
 
-    guard realsIn.count == imagsIn.count else {
-        fatalError("You should have the samen number or real and immaginary values")
+        let realsIn: [Float] = reals
+        let imagsIn: [Float] = imags ?? [Float](repeating: 0.0, count: reals.count)
+
+        guard realsIn.count == imagsIn.count else {
+            fatalError("You should have the samen number or real and immaginary values")
+        }
+
+        guard let dftSetup = vDSP_DFT_zop_CreateSetup(reuseSetup, vDSP_Length(reals.count), .FORWARD) else {
+            fatalError("Could not initialize DFT setup. Perhapse the number or values does not equal to: f * 2**n, where f is 1, 3, 5, or 15 and n is at least 3.")
+        }
+
+        var realsOut = [Float](repeating: 0.0, count: reals.count)
+        var imagsOut = [Float](repeating: 0.0, count: reals.count)
+
+        vDSP_DFT_Execute(dftSetup, realsIn, imagsIn, &realsOut, &imagsOut)
+
+        // When the DFT is computed for purely real input, the output is Hermitian-symmetric,
+        // i.e. the negative frequency terms are just the complex conjugates of the corresponding
+        // positive-frequency terms, and the negative-frequency terms are therefore redundant.
+        if imags == nil {
+            realsOut = Array(realsOut[0..<reals.count/2+1])
+            imagsOut = Array(imagsOut[0..<reals.count/2+1])
+        }
+
+        return (realsOut, imagsOut, dftSetup)
     }
-
-    guard let dftSetup = vDSP_DFT_zop_CreateSetup(reuseSetup, vDSP_Length(reals.count), .FORWARD) else {
-        fatalError("Could not initialize DFT setup. Perhapse the number or values does not equal to: f * 2**n, where f is 1, 3, 5, or 15 and n is at least 3.")
-    }
-
-    var realsOut = [Float](repeating: 0.0, count: reals.count)
-    var imagsOut = [Float](repeating: 0.0, count: reals.count)
-
-    vDSP_DFT_Execute(dftSetup, realsIn, imagsIn, &realsOut, &imagsOut)
-
-    // When the DFT is computed for purely real input, the output is Hermitian-symmetric,
-    // i.e. the negative frequency terms are just the complex conjugates of the corresponding
-    // positive-frequency terms, and the negative-frequency terms are therefore redundant.
-    if imags == nil {
-        realsOut = Array(realsOut[0..<reals.count/2+1])
-        imagsOut = Array(imagsOut[0..<reals.count/2+1])
-    }
-
-    return (realsOut, imagsOut, dftSetup)
 }
 
 extension Matrix where T == Double {
@@ -78,7 +81,7 @@ extension Matrix where T == Double {
         var reuseSetup: vDSP_DFT_SetupD? = nil
 
         for i in (0..<self.height) {
-            let (reals, imags, fftSetup) = discreteFourierTransform(reals: self[i], reuseSetup: reuseSetup)
+            let (reals, imags, fftSetup) = [Double].discreteFourierTransform(reals: self[i], reuseSetup: reuseSetup)
             flatReals += reals
             flatImags += imags
             reuseSetup = fftSetup
@@ -92,31 +95,34 @@ extension Matrix where T == Double {
     }
 }
 
-fileprivate func discreteFourierTransform(reals: [Double], imags: [Double]? = nil, reuseSetup: vDSP_DFT_SetupD? = nil) -> ([Double], [Double], vDSP_DFT_SetupD) {
+extension Array where Element == Double {
 
-    let realsIn = reals
-    let imagsIn = imags ?? [Double](repeating: 0.0, count: reals.count)
+    static func discreteFourierTransform(reals: [Double], imags: [Double]? = nil, reuseSetup: vDSP_DFT_SetupD? = nil) -> ([Double], [Double], vDSP_DFT_SetupD) {
 
-    guard realsIn.count == imagsIn.count else {
-        fatalError("You should have the samen number or real and immaginary values")
+        let realsIn = reals
+        let imagsIn = imags ?? [Double](repeating: 0.0, count: reals.count)
+
+        guard realsIn.count == imagsIn.count else {
+            fatalError("You should have the samen number or real and immaginary values")
+        }
+
+        guard let dftSetup = vDSP_DFT_zop_CreateSetupD(reuseSetup, vDSP_Length(reals.count), .FORWARD) else {
+            fatalError("Could not initialize DFT setup. Perhapse the number or values does not equal to: f * 2**n, where f is 1, 3, 5, or 15 and n is at least 3.")
+        }
+
+        var realsOut = [Double](repeating: 0.0, count: reals.count)
+        var imagsOut = [Double](repeating: 0.0, count: reals.count)
+
+        vDSP_DFT_ExecuteD(dftSetup, realsIn, imagsIn, &realsOut, &imagsOut)
+
+        // When the DFT is computed for purely real input, the output is Hermitian-symmetric,
+        // i.e. the negative frequency terms are just the complex conjugates of the corresponding
+        // positive-frequency terms, and the negative-frequency terms are therefore redundant.
+        if imags == nil {
+            realsOut = Array(realsOut[0..<reals.count/2+1])
+            imagsOut = Array(imagsOut[0..<reals.count/2+1])
+        }
+
+        return (realsOut, imagsOut, dftSetup)
     }
-
-    guard let dftSetup = vDSP_DFT_zop_CreateSetupD(reuseSetup, vDSP_Length(reals.count), .FORWARD) else {
-        fatalError("Could not initialize DFT setup. Perhapse the number or values does not equal to: f * 2**n, where f is 1, 3, 5, or 15 and n is at least 3.")
-    }
-
-    var realsOut = [Double](repeating: 0.0, count: reals.count)
-    var imagsOut = [Double](repeating: 0.0, count: reals.count)
-
-    vDSP_DFT_ExecuteD(dftSetup, realsIn, imagsIn, &realsOut, &imagsOut)
-
-    // When the DFT is computed for purely real input, the output is Hermitian-symmetric,
-    // i.e. the negative frequency terms are just the complex conjugates of the corresponding
-    // positive-frequency terms, and the negative-frequency terms are therefore redundant.
-    if imags == nil {
-        realsOut = Array(realsOut[0..<reals.count/2+1])
-        imagsOut = Array(imagsOut[0..<reals.count/2+1])
-    }
-
-    return (realsOut, imagsOut, dftSetup)
 }
