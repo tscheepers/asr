@@ -54,7 +54,7 @@ class Fixtures {
         let buf = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 1024 * 1024)!
         try! file.read(into: buf)
 
-        return Array(UnsafeBufferPointer(start: buf.floatChannelData![0], count:Int(buf.frameLength)))
+        return buf.unsafeToVector()
     }
 
 }
