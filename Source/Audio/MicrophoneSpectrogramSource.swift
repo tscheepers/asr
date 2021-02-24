@@ -84,6 +84,7 @@ class MicrophoneSpectrogramSource {
         inputNode.installTap(onBus: bus, bufferSize: frameLength, format: inputFormat) { (buffer: AVAudioPCMBuffer, time: AVAudioTime) in
             let wave = buffer.unsafeToVector()
             if let previousWave = self.previousWave {
+                // Combine the previous wave with the current wave and process
                 self.process(newFrame: (wave + previousWave))
             }
             self.previousWave = wave
@@ -99,7 +100,7 @@ class MicrophoneSpectrogramSource {
         // Assert frame length
         assert(frame.count == self.frameLength)
 
-        // Combine the previous wave with the current wave and tamper using the Hamming function
+        // Tamper using the Hamming function
         let inputFrame: [Float] = zip(frame, hammingWindow).map { $0.0 * $0.1 }
 
         // Execute the fourier transform

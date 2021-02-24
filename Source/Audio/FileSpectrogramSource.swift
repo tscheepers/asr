@@ -6,9 +6,11 @@ class FileSpectrogramSource: SpectrogramRendererDelegate {
 
     private let texture: MTLTexture
 
-    init(named: String, device: MTLDevice) {
-        let wave = Self.loadAudioWave(named: named, sampleRate: 16_000)
-        let spectrogram: Matrix<Float> = wave.shortTimeFourierTransform(nFFT: 320, hopLength: 160, window: .hamming).magnitude()
+    init(named: String, device: MTLDevice, frameLength: Int = 320, sampleRate: Double = 16_000) {
+
+        let wave = Self.loadAudioWave(named: named, sampleRate: sampleRate)
+
+        let spectrogram: Matrix<Float> = wave.shortTimeFourierTransform(nFFT: frameLength, hopLength: frameLength/2, window: .hamming).magnitude()
 
         let textureDescriptor = MTLTextureDescriptor()
         textureDescriptor.storageMode = .shared
@@ -28,7 +30,7 @@ class FileSpectrogramSource: SpectrogramRendererDelegate {
 
     /// Method to load audio wave from wav file
     static func loadAudioWave(named: String, sampleRate: Double? = 16_000, fileExtension: String = "wav") -> [Float] {
-        let url =  Bundle(for: Self.self).url(forResource: named, withExtension: fileExtension)
+        let url = Bundle(for: Self.self).url(forResource: named, withExtension: fileExtension)
         let file = try! AVAudioFile(forReading: url!)
 
         let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: sampleRate ?? file.fileFormat.sampleRate, channels: 1, interleaved: false)!
