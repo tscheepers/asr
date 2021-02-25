@@ -6,7 +6,7 @@ class SpectrogramViewController: UIViewController {
 
     let renderer: SpectrogramRenderer = SpectrogramRenderer()
 
-    var spectrogramSource: FileSpectrogramSource!
+    var spectrogramSource: MicrophoneSpectrogramSource!
 
     var metalLayer: CAMetalLayer!
 
@@ -20,8 +20,11 @@ class SpectrogramViewController: UIViewController {
         zoomRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(SpectrogramViewController.zoom(gestureRecognizer:)))
         view.addGestureRecognizer(zoomRecognizer)
 
-        spectrogramSource = FileSpectrogramSource(named: "librispeech-sample", device: renderer.device)
+//        spectrogramSource = FileSpectrogramSource(named: "librispeech-sample", device: renderer.device)
+        spectrogramSource = MicrophoneSpectrogramSource(device: renderer.device)
         renderer.delegate = spectrogramSource
+
+        spectrogramSource.start()
 
         metalLayer = renderer.createMetalLayer(frame: view.layer.frame)
         view.layer.addSublayer(metalLayer)

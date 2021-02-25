@@ -16,11 +16,16 @@ extension Array where Element : FloatingPoint {
     /// - Parameters:
     ///     - nFFT: Length of the windowed signal. Defaults to `2048`. In any case, we recommend setting `nFFT` to a power of two for optimizing the speed of the fast Fourier transform (FFT) algorithm.
     ///     - hopLength: Number of audio samples between adjacent STFT columns. If unspecified, defaults to `nFFT/4`.
+    ///     - window: Select the window function for tampering
+    ///     - reflect: Whether or not to reflect the edges, by default this is set to `true` but for streaming use cases you might want to disable reflection
     /// - Returns: The complex matrix with dimensions: `(1 + nFFT/2, nFrames)`
-    func shortTimeFourierTransform(nFFT: Int = 2048, hopLength: Int? = nil, window: STFTWindowFunction = .hann) -> ComplexMatrix<Element> {
+    func shortTimeFourierTransform(nFFT: Int = 2048, hopLength: Int? = nil, window: STFTWindowFunction = .hann, reflect: Bool = true) -> ComplexMatrix<Element> {
 
         // We pad both sides with the reflection of the signal, such that the tampering does not remove signal at the edges
-        let frames = self.padWithReflection(nFFT/2).framesFromSlidingWindow(windowLength: nFFT, hopLength: hopLength ?? (nFFT/4))
+        let paddedOrNot = reflect ? self.padWithReflection(nFFT/2) : self
+
+        // Split up the signal into distinct frames
+        let frames = paddedOrNot.framesFromSlidingWindow(windowLength: nFFT, hopLength: hopLength ?? (nFFT/4))
 
         // Tamper the individual frames to prevent edge artifacts using the Hann or Hamming function
         let w: [Element]

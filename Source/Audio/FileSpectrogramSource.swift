@@ -28,6 +28,10 @@ class FileSpectrogramSource: SpectrogramRendererDelegate {
         return texture
     }
 
+    func textureHeightOffset(forPresentationBy renderer: SpectrogramRenderer) -> Int {
+        return 0
+    }
+
     /// Method to load audio wave from wav file
     static func loadAudioWave(named: String, sampleRate: Double? = 16_000, fileExtension: String = "wav") -> [Float] {
         let url = Bundle(for: Self.self).url(forResource: named, withExtension: fileExtension)

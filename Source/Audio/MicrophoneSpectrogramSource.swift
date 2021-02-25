@@ -1,32 +1,13 @@
 import Foundation
+import UIKit
 import AVFoundation
 import Accelerate
 import Metal
 
-class MicrophoneSpectrogramSource {
-
-// TO-DO:
-//    func texture(forPresentationBy renderer: SpectrogramRenderer) -> MTLTexture {
-//
-//    }
+class MicrophoneSpectrogramSource: SpectrogramRendererDelegate {
 
     let frameLength: Int
     let sampleRate: Double
-
-    /// All the data received thusfar.
-    private var spectrogramColumns: [[Float]] = []
-
-    /// Used for processing a new frame. Each frame consists of two parts, the previous wave and the new wave.
-    /// So we need to keep track of the previous wave we received from the mic.
-    private var previousWave: [Float]?
-
-    /// Used for optimizing the FFT algorithm.
-    private var fftSetup: vDSP_DFT_Setup?
-
-    /// Used for tampering each frame to reduce edge artifacts.
-    private(set) lazy var hammingWindow: [Float] = {
-        [Float].hammingWindow(windowLength: self.frameLength)
-    }()
 
     /// Used for checking permissions
     let session: AVAudioSession = AVAudioSession.sharedInstance()
@@ -34,9 +15,29 @@ class MicrophoneSpectrogramSource {
     /// Used for tapping the microphone
     let audioEngine = AVAudioEngine()
 
-    init(frameLength: Int = 320, sampleRate: Double = 16_000) {
+    /// We will display as much timesteps (i.e. frames) as there are pixels on the screen
+    let textureHeight = Int(UIScreen.main.nativeBounds.width)
+
+    /// Points to the column in the texture we can fill when a new frame arrives
+    /// This should always be `0 <= texturePointer < textureWidth`
+    var texturePointer: Int = 0
+
+    /// The texture containing the spectrogram, ready for rendering
+    private let texture: MTLTexture
+
+    init(frameLength: Int = 320, sampleRate: Double = 16_000, device: MTLDevice) {
         self.frameLength = frameLength
         self.sampleRate = sampleRate
+
+        let textureDescriptor = MTLTextureDescriptor()
+        textureDescriptor.storageMode = .shared
+        textureDescriptor.usage = [.shaderWrite, .shaderRead]
+        textureDescriptor.pixelFormat = .r32Float
+        textureDescriptor.width = (frameLength / 2) + 1 // Since we use the real valued FFT we dismiss half of the values
+        textureDescriptor.height = textureHeight
+        textureDescriptor.depth = 1
+
+        texture = device.makeTexture(descriptor: textureDescriptor)!
     }
 
     /// Start creating a rolling spectrogram
@@ -68,6 +69,9 @@ class MicrophoneSpectrogramSource {
         }
     }
 
+    /// Used for processing a new wave to account for the lack of reflection on the STFT
+    private var previousWave: [Float]?
+
     /// Listen to the audio from the microphone
     private func startListening() {
         let inputNode = audioEngine.inputNode // This automatically defaults to the microphone
@@ -78,16 +82,20 @@ class MicrophoneSpectrogramSource {
         // just in case, assert that this is the case
         assert(inputFormat.sampleRate == self.sampleRate)
 
-        // Should be exactly halve since we are combining two frames continuously
+        // But installTap has a minimum of 100ms of buffer so we need to chunck after we receive a new buffer
         let frameLength = AVAudioFrameCount(self.frameLength / 2)
 
         inputNode.installTap(onBus: bus, bufferSize: frameLength, format: inputFormat) { (buffer: AVAudioPCMBuffer, time: AVAudioTime) in
             let wave = buffer.unsafeToVector()
+            assert(wave.count % self.frameLength == 0)
+
+            // We add two frames from the previous wave to account to account for disabling reflections on the STFT
             if let previousWave = self.previousWave {
-                // Combine the previous wave with the current wave and process
-                self.process(newFrame: (wave + previousWave))
+                self.process(newWave: (previousWave + wave))
+            } else {
+                self.process(newWave: Array(wave))
             }
-            self.previousWave = wave
+            self.previousWave = Array(wave.suffix(self.frameLength))
         }
 
         audioEngine.prepare()
@@ -95,23 +103,30 @@ class MicrophoneSpectrogramSource {
     }
 
     // Process new frame comming in
-    func process(newFrame frame: [Float]) {
+    func process(newWave wave: [Float]) {
 
-        // Assert frame length
-        assert(frame.count == self.frameLength)
+        // Assert frame length is divisable by the frameLength
+        assert(wave.count % self.frameLength == 0)
 
-        // Tamper using the Hamming function
-        let inputFrame: [Float] = zip(frame, hammingWindow).map { $0.0 * $0.1 }
-
-        // Execute the fourier transform
-        let (reals, imags, fftSetup) = [Float].discreteFourierTransform(reals: inputFrame, reuseSetup: self.fftSetup)
-        self.fftSetup = fftSetup // For reuse next time
+        let frames = wave.shortTimeFourierTransform(nFFT: self.frameLength, hopLength: self.frameLength/2, window: .hamming, reflect: false)
 
         // Generate a spectrogram column
-        let magnitudes: [Float] = zip(reals, imags).map { sqrt($0.0 * $0.0 + $0.1 * $0.1) }
+        let spectrogram = log(1 + frames.magnitude())
 
-        // Add a new column of the spectrogram
-        self.spectrogramColumns.append(magnitudes)
+        // TODO: Add normalization using running mean and standard deviation
+
+        // Update texture
+        spectrogram.fill(texture: texture, offset: (0, texturePointer))
+        texturePointer = (texturePointer + spectrogram.height) % texture.height
+    }
+
+    // MARK: -
+    func texture(forPresentationBy renderer: SpectrogramRenderer) -> MTLTexture {
+        return texture
+    }
+
+    func textureHeightOffset(forPresentationBy renderer: SpectrogramRenderer) -> Int {
+        return texturePointer
     }
 }
 

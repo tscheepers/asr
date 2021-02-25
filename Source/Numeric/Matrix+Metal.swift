@@ -27,12 +27,19 @@ extension Matrix where T == Float {
     }
 
     /// Fill a metal texture with the matrix
-    func fill(texture: MTLTexture) {
+    func fill(texture: MTLTexture, offset: (x: Int, y: Int) = (0, 0)) {
+
+        assert(width <= texture.width && height <= texture.height)
+
+        if offset.x + width > texture.width || offset.y + height > texture.height {
+            return
+        }
 
         switch texture.pixelFormat {
         case .r32Float:
+
             texture.replace(
-                region: MTLRegionMake2D(0, 0, width, height),
+                region: MTLRegionMake2D(offset.x, offset.y, width, height),
                 mipmapLevel: 0,
                 withBytes: flat,
                 bytesPerRow: width * MemoryLayout<T>.stride

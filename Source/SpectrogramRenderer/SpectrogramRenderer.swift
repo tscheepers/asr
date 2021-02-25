@@ -5,6 +5,8 @@ import Accelerate
 
 protocol SpectrogramRendererDelegate: class {
     func texture(forPresentationBy renderer: SpectrogramRenderer) -> MTLTexture
+
+    func textureHeightOffset(forPresentationBy renderer: SpectrogramRenderer) -> Int
 }
 
 
@@ -75,7 +77,10 @@ class SpectrogramRenderer {
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
         renderEncoder.setFragmentTexture(texture, index: 0)
 
-        var params = FragmentShaderParameters(zoom: Float(zoom))
+        var textureHeightOffset = Float(delegate?.textureHeightOffset(forPresentationBy: self) ?? 0)
+        textureHeightOffset /= Float(texture.height) // Normalize the height offset
+
+        var params = FragmentShaderParameters(zoom: Float(zoom), textureHeightOffset:textureHeightOffset)
         renderEncoder.setFragmentBytes(&params, length: MemoryLayout<FragmentShaderParameters>.stride, index: 0)
 
         renderEncoder.drawPrimitives(
@@ -145,4 +150,5 @@ class SpectrogramRenderer {
 /// Struct that corresponds exactly with the parameters struct in the shader
 fileprivate struct FragmentShaderParameters {
     let zoom: Float
+    let textureHeightOffset: Float
 }

@@ -17,6 +17,7 @@ vertex Vertex vertex_shader(constant float4 *vertices [[buffer(0)]],
 
 struct FragmentShaderParameters {
     float zoom;
+    float heightOffset;
 };
 
 fragment float4 fragment_shader(Vertex vtx [[stage_in]],
@@ -25,9 +26,15 @@ fragment float4 fragment_shader(Vertex vtx [[stage_in]],
 {
     constexpr sampler smplr(coord::normalized,
                             address::clamp_to_zero,
-                            filter::nearest);
-    
-    float cell = field.sample(smplr, float2(1.0, params.zoom) * vtx.uv).r;
+                            filter::linear);
+
+    float2 zommed = float2(1.0, params.zoom) * vtx.uv;
+
+    float2 reversed = float2(zommed.r, 1.0 - zommed.g);
+
+    float2 offset = float2(reversed.r, fmod(reversed.g + params.heightOffset, 1.0));
+
+    float cell = field.sample(smplr, offset).r;
     return float4(cell);
 }
 
