@@ -20,6 +20,9 @@ class SpectrogramRenderer {
 
     weak var delegate: SpectrogramRendererDelegate?
 
+    /// Current zoom state 
+    var zoom: Double = 1.0
+
     convenience init() {
 
         let device = MTLCreateSystemDefaultDevice()!
@@ -71,6 +74,10 @@ class SpectrogramRenderer {
         renderEncoder.setRenderPipelineState(renderPipelineState)
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
         renderEncoder.setFragmentTexture(texture, index: 0)
+
+        var params = FragmentShaderParameters(zoom: Float(zoom))
+        renderEncoder.setFragmentBytes(&params, length: MemoryLayout<FragmentShaderParameters>.stride, index: 0)
+
         renderEncoder.drawPrimitives(
             type: .triangle,
             vertexStart: 0,
@@ -133,4 +140,9 @@ class SpectrogramRenderer {
         metalLayer.frame = frame
         return metalLayer
     }
+}
+
+/// Struct that corresponds exactly with the parameters struct in the shader
+fileprivate struct FragmentShaderParameters {
+    let zoom: Float
 }

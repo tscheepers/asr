@@ -12,8 +12,13 @@ class SpectrogramViewController: UIViewController {
 
     var timer: CADisplayLink?
 
+    var zoomRecognizer: UIPinchGestureRecognizer!
+
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        zoomRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(SpectrogramViewController.zoom(gestureRecognizer:)))
+        view.addGestureRecognizer(zoomRecognizer)
 
         spectrogramSource = FileSpectrogramSource(named: "librispeech-sample", device: renderer.device)
         renderer.delegate = spectrogramSource
@@ -29,6 +34,28 @@ class SpectrogramViewController: UIViewController {
     override func viewDidDisappear(_ animated: Bool) {
         timer?.remove(from: RunLoop.main, forMode: .default)
         timer = nil
+    }
+
+    private var zoomStart: Double = 1.0
+    private var zoom: Double = 1.0 {
+        didSet {
+            renderer.zoom = zoom
+        }
+    }
+
+    @objc func zoom(gestureRecognizer: UIPinchGestureRecognizer) {
+        switch gestureRecognizer.state {
+        case .began,
+             .changed:
+            zoom = fmin(fmax(zoomStart * 1.0 / Double(gestureRecognizer.scale), 0.05), 1.0)
+        case .ended:
+            zoomStart = zoom
+        case .cancelled,
+             .failed:
+            zoom = zoomStart
+        default:
+            return
+        }
     }
 
     @objc func gameloop() {

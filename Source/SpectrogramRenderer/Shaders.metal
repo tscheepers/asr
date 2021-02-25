@@ -15,13 +15,19 @@ vertex Vertex vertex_shader(constant float4 *vertices [[buffer(0)]],
     };
 }
 
+struct FragmentShaderParameters {
+    float zoom;
+};
+
 fragment float4 fragment_shader(Vertex vtx [[stage_in]],
+                                constant FragmentShaderParameters& params [[buffer(0)]],
                                 texture2d<float> field [[texture(0)]])
 {
     constexpr sampler smplr(coord::normalized,
                             address::clamp_to_zero,
                             filter::nearest);
-    float cell = field.sample(smplr, vtx.uv).r;
+    
+    float cell = field.sample(smplr, float2(1.0, params.zoom) * vtx.uv).r;
     return float4(cell);
 }
 

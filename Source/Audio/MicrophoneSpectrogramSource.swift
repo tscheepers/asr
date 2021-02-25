@@ -79,7 +79,7 @@ class MicrophoneSpectrogramSource {
         assert(inputFormat.sampleRate == self.sampleRate)
 
         // Should be exactly halve since we are combining two frames continuously
-        let frameLength = AVAudioFrameCount(frameLength / 2)
+        let frameLength = AVAudioFrameCount(self.frameLength / 2)
 
         inputNode.installTap(onBus: bus, bufferSize: frameLength, format: inputFormat) { (buffer: AVAudioPCMBuffer, time: AVAudioTime) in
             let wave = buffer.unsafeToVector()
