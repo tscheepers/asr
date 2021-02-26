@@ -4,7 +4,7 @@ import AVFoundation
 import Accelerate
 import Metal
 
-class MicrophoneSpectrogramSource: SpectrogramRendererDelegate {
+class MicrophoneSpectrogramSource: SpectrogramRendererDataSource {
 
     let frameLength: Int
     let sampleRate: Double
@@ -21,9 +21,6 @@ class MicrophoneSpectrogramSource: SpectrogramRendererDelegate {
     /// Points to the column in the texture we can fill when a new frame arrives
     /// This should always be `0 <= texturePointer < textureWidth`
     var texturePointer: Int = 0
-
-    /// The texture containing the spectrogram, ready for rendering
-    private let texture: MTLTexture
 
     init(frameLength: Int = 320, sampleRate: Double = 16_000, device: MTLDevice) {
         self.frameLength = frameLength
@@ -116,16 +113,16 @@ class MicrophoneSpectrogramSource: SpectrogramRendererDelegate {
         // TODO: Add normalization using running mean and standard deviation
 
         // Update texture
-        spectrogram.fill(texture: texture, offset: (0, texturePointer))
-        texturePointer = (texturePointer + spectrogram.height) % texture.height
+        spectrogram.fill(texture: texture, offset: (0, texturePointer % texture.height))
+        texturePointer = texturePointer + spectrogram.height
     }
 
-    // MARK: -
-    func texture(forPresentationBy renderer: SpectrogramRenderer) -> MTLTexture {
-        return texture
-    }
+    // MARK: - SpectrogramRendererDataSource
+    
+    /// The texture containing the spectrogram, ready for rendering
+    private(set) var texture: MTLTexture
 
-    func textureHeightOffset(forPresentationBy renderer: SpectrogramRenderer) -> Int {
+    var textureHeightOffset: Int {
         return texturePointer
     }
 }

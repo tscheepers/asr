@@ -2,9 +2,7 @@ import Foundation
 import AVFoundation
 import Metal
 
-class FileSpectrogramSource: SpectrogramRendererDelegate {
-
-    private let texture: MTLTexture
+class FileSpectrogramSource: SpectrogramRendererDataSource {
 
     init(named: String, device: MTLDevice, frameLength: Int = 320, sampleRate: Double = 16_000) {
 
@@ -24,14 +22,6 @@ class FileSpectrogramSource: SpectrogramRendererDelegate {
         spectrogram.fill(texture: texture)
     }
 
-    func texture(forPresentationBy renderer: SpectrogramRenderer) -> MTLTexture {
-        return texture
-    }
-
-    func textureHeightOffset(forPresentationBy renderer: SpectrogramRenderer) -> Int {
-        return 0
-    }
-
     /// Method to load audio wave from wav file
     static func loadAudioWave(named: String, sampleRate: Double? = 16_000, fileExtension: String = "wav") -> [Float] {
         let url = Bundle(for: Self.self).url(forResource: named, withExtension: fileExtension)
@@ -44,5 +34,13 @@ class FileSpectrogramSource: SpectrogramRendererDelegate {
         try! file.read(into: buf)
 
         return buf.unsafeToVector()
+    }
+
+    // MARK: - SpectrogramRendererDataSource
+
+    private(set) var texture: MTLTexture
+
+    var textureHeightOffset: Int {
+        return 0
     }
 }

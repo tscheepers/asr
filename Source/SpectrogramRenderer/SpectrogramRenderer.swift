@@ -3,10 +3,9 @@ import Foundation
 import UIKit
 import Accelerate
 
-protocol SpectrogramRendererDelegate: class {
-    func texture(forPresentationBy renderer: SpectrogramRenderer) -> MTLTexture
-
-    func textureHeightOffset(forPresentationBy renderer: SpectrogramRenderer) -> Int
+protocol SpectrogramRendererDataSource: class {
+    var texture: MTLTexture { get }
+    var textureHeightOffset: Int { get }
 }
 
 
@@ -20,10 +19,10 @@ class SpectrogramRenderer {
 
     let device: MTLDevice
 
-    weak var delegate: SpectrogramRendererDelegate?
+    weak var dataSource: SpectrogramRendererDataSource?
 
     /// Current zoom state 
-    var zoom: Double = 1.0
+    var zoom: Float = 1.0
 
     convenience init() {
 
@@ -68,19 +67,16 @@ class SpectrogramRenderer {
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
 
         guard
-            let texture = delegate?.texture(forPresentationBy: self),
+            let dataSource = self.dataSource,
             let commandBuffer = commandQueue.makeCommandBuffer(),
             let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)
         else { return }
 
         renderEncoder.setRenderPipelineState(renderPipelineState)
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        renderEncoder.setFragmentTexture(texture, index: 0)
+        renderEncoder.setFragmentTexture(dataSource.texture, index: 0)
 
-        var textureHeightOffset = Float(delegate?.textureHeightOffset(forPresentationBy: self) ?? 0)
-        textureHeightOffset /= Float(texture.height) // Normalize the height offset
-
-        var params = FragmentShaderParameters(zoom: Float(zoom), textureHeightOffset:textureHeightOffset)
+        var params = FragmentShaderParameters(zoom: zoom, textureHeightOffset:smoothedNormalizedTextureHeightOffset)
         renderEncoder.setFragmentBytes(&params, length: MemoryLayout<FragmentShaderParameters>.stride, index: 0)
 
         renderEncoder.drawPrimitives(
@@ -94,6 +90,40 @@ class SpectrogramRenderer {
         commandBuffer.present(drawable)
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
+    }
+
+    private var previousTextureHeightOffset: Int = 0
+    private var previousTextureHeightReceivedAt: Double = CACurrentMediaTime()
+    private var latestTextureHeightOffset: Int = 0
+    private var latestTextureHeightReceivedAt: Double = CACurrentMediaTime()
+
+    /// Because we only get new microphone data every 100ms we have a smooth texture offset so the
+    /// texture still translates nicely across the screen without stutters
+    private var smoothedNormalizedTextureHeightOffset: Float {
+        guard let dataSource = self.dataSource else { return 0.0 }
+
+        let textureHeight = Float(dataSource.texture.height)
+
+        // Extrapolate offset
+        if (dataSource.textureHeightOffset == latestTextureHeightOffset) {
+
+            //let timeDiff = Float(latestTextureHeightReceivedAt - previousTextureHeightReceivedAt)
+            let timeDiff: Float = 0.1
+            let offsetDiff = Float(latestTextureHeightOffset - previousTextureHeightOffset)
+
+            let timeSinceLatest = Float(CACurrentMediaTime() - latestTextureHeightReceivedAt)
+            let extrapolatedOffset: Float = timeSinceLatest * offsetDiff / timeDiff
+
+            return (Float(latestTextureHeightOffset) + extrapolatedOffset).truncatingRemainder(dividingBy: textureHeight) / textureHeight
+        }
+
+        // Update with new offset
+        previousTextureHeightOffset = latestTextureHeightOffset
+        previousTextureHeightReceivedAt = latestTextureHeightReceivedAt
+        latestTextureHeightOffset = dataSource.textureHeightOffset
+        latestTextureHeightReceivedAt = CACurrentMediaTime()
+
+        return Float(latestTextureHeightOffset).truncatingRemainder(dividingBy: textureHeight) / textureHeight
     }
 
     // MARK: -

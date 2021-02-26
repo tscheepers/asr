@@ -22,7 +22,7 @@ class SpectrogramViewController: UIViewController {
 
 //        spectrogramSource = FileSpectrogramSource(named: "librispeech-sample", device: renderer.device)
         spectrogramSource = MicrophoneSpectrogramSource(device: renderer.device)
-        renderer.delegate = spectrogramSource
+        renderer.dataSource = spectrogramSource
 
         spectrogramSource.start()
 
@@ -42,7 +42,7 @@ class SpectrogramViewController: UIViewController {
     private var zoomStart: Double = 1.0
     private var zoom: Double = 1.0 {
         didSet {
-            renderer.zoom = zoom
+            renderer.zoom = Float(zoom)
         }
     }
 
