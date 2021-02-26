@@ -15,9 +15,9 @@ if __name__ == '__main__':
     for (input, output) in input_outputs:
         with open(input, 'r') as r:
             r.readline()  # Skip the first line
-            with open(output, 'w') as w:
+            with open(output, 'w', newline='') as w:
                 for i, line in enumerate(r.readlines()):
                     if i != 0:
                         w.write('\n')
-                    split = line.split('\t')
+                    split = line.strip('\n').split('\t')
                     w.write(data_dir('clips', split[1]) + '\t' + split[2])

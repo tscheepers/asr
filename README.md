@@ -32,7 +32,7 @@ Example `train.tsv` file:
 ```
 
 ### Training to-dos: 
-- [x] Write ASR model ready for streaming inference, uni-directional LSTM with lookahead  [`code`](Train/model/cnn_rnn_lookahead_acoustic_model.py)
+- [x] Write ASR model ready for streaming inference, uni-directional LSTM with lookahead  [`code`](Train/cnn_rnn_lookahead_acoustic_model.py)
 - [x] Implement streaming inference proof-of-concept [`code`](Train/streaming_inference.py)
 - [x] Train on LibriSpeech (English)
 - [x] Export the model using coremltools [`code`](Train/coreml.py)
@@ -49,6 +49,7 @@ Example `train.tsv` file:
 - [x] Write custom Short-Time Fourier Transform for iPhone [`code`](Source/Numeric/Vector+STFT.swift)
 - [x] Test our custom STFT with [librosa](https://librosa.org/) reference
 - [x] Load pretrained [deepspeech.pytorch](https://github.com/SeanNaren/deepspeech.pytorch) using coremltools
+- [x] Tap microphone data [`code`](Source/Audio/MicrophoneSpectrogramSource.swift)
 - [ ] Load model reading for streaming inference
 - [ ] Implement streaming inference in Swift
 - [x] Implement greedy decoding in Swift
@@ -56,6 +57,6 @@ Example `train.tsv` file:
 - [ ] Use microphone for streaming inference
 - [x] Load custom model using coremltools into the iPhone codebase
 - [ ] Augment decoder with Transformer based language model
-- [ ] Render spectrogram input as it is coming in from the microphone
+- [x] Render spectrogram input as it is coming in from the microphone [`code`](Source/SpectrogramRenderer/SpectrogramRenderer.swift) [`shader`](Source/SpectrogramRenderer/Shaders.metal)
 - [ ] Render raw model output characters on top of the spectrogram
 - [ ] Render decoded model output below the raw output

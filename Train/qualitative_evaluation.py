@@ -1,8 +1,8 @@
 import pytorch_lightning
 import torch
-from ctcdecode import CTCBeamDecoder
-from model.cnn_rnn_lookahead_acoustic_model import CnnRnnLookaheadAcousticModel as Model
 import Levenshtein as Lev
+from ctcdecode import CTCBeamDecoder
+from cnn_rnn_lookahead_acoustic_model import CnnRnnLookaheadAcousticModel as Model
 
 
 class QualitativeEvaluator:

@@ -1,9 +1,9 @@
 import librosa
 import numpy as np
-from model.config import Config
+from .config import DatasetConfig
 
 
-def generate_spectrogram(filename, config: Config):
+def generate_spectrogram(filename, config: DatasetConfig):
     wave, wave_sample_rate = librosa.load(filename, sr=config.sample_rate, mono=True)
 
     if config.sample_rate != wave_sample_rate:

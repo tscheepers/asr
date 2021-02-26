@@ -10,10 +10,10 @@ if __name__ == '__main__':
 
     for (input, output) in input_outputs:
         with open(input, 'r') as r:
-            r.readline()  # Skip the first line
-            with open(output, 'w') as w:
+            r.readline().strip('\n')  # Skip the first line
+            with open(output, 'w', newline='') as w:
                 for i, line in enumerate(r.readlines()):
                     if i != 0:
                         w.write('\n')
-                    split = line.split('\t')
-                    w.write(split[0] + '\t' + split[2] + '\n')
+                    split = line.strip('\n').split('\t')
+                    w.write(split[0] + '\t' + split[2])

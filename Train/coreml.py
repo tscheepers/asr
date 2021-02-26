@@ -3,8 +3,8 @@
 import sys
 import torch
 import coremltools as ct
-from model.cnn_rnn_lookahead_acoustic_model import CnnRnnLookaheadAcousticModel as Model
-from model.cnn_rnn_lookahead_acoustic_model import CnnRnnLookaheadAcousticModelConfig as Config
+from cnn_rnn_lookahead_acoustic_model import CnnRnnLookaheadAcousticModel as Model
+from cnn_rnn_lookahead_acoustic_model import CnnRnnLookaheadAcousticModelConfig as Config
 
 
 def main(args):
@@ -29,13 +29,13 @@ def main(args):
     # On inference the user is expected to pad the input
     useful_frame_width = 60
     padding = 15
-    lookahead_overflow = model.config.lookahead_context * 2  # times two because of the strides in layer 1
+    lookahead_overflow = model.model_config.lookahead_context * 2  # times two because of the strides in layer 1
     total_frame_width = padding + useful_frame_width + lookahead_overflow + padding  # add left and right padding
 
     # Input descriptions
     spectrogram = torch.rand((161, total_frame_width))
-    h0 = torch.zeros(model.config.num_layers, model.config.hidden_size)
-    c0 = torch.zeros(model.config.num_layers, model.config.hidden_size)
+    h0 = torch.zeros(model.model_config.num_rnn_layers, model.model_config.hidden_size)
+    c0 = torch.zeros(model.model_config.num_rnn_layers, model.model_config.hidden_size)
 
     # Trace model
     traced_model = torch.jit.trace(model, (spectrogram, h0, c0))

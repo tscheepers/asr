@@ -4,7 +4,7 @@ import sys
 import pytorch_lightning
 from dataclasses import dataclass
 from qualitative_evaluation import QualitativeEvaluationCallback
-from model.cnn_rnn_lookahead_acoustic_model import CnnRnnLookaheadAcousticModel as Model
+from cnn_rnn_lookahead_acoustic_model import CnnRnnLookaheadAcousticModel as Model
 
 
 @dataclass

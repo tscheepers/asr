@@ -1,5 +1,5 @@
 import re
-from data.dataset import DatasetConfig
+from .config import DatasetConfig
 
 
 class StringProcessor:

@@ -5,8 +5,8 @@ import numpy as np
 import torch
 from data.generate_spectrogram import generate_spectrogram
 from qualitative_evaluation import QualitativeEvaluator
-from model.cnn_rnn_lookahead_acoustic_model import CnnRnnLookaheadAcousticModel as Model
-from model.cnn_rnn_lookahead_acoustic_model import CnnRnnLookaheadAcousticModelConfig as Config
+from cnn_rnn_lookahead_acoustic_model import CnnRnnLookaheadAcousticModel as Model
+from cnn_rnn_lookahead_acoustic_model import CnnRnnLookaheadAcousticModelConfig as Config
 
 SAMPLE = (
     '../Tests/Fixtures/librispeech-sample.wav',
@@ -17,7 +17,7 @@ SAMPLE = (
 
 def transform_into_spectrogram_labels(sample, model):
     filename, sentence = sample
-    return generate_spectrogram(filename, model.config), model.string_processor.str_to_labels(sentence)
+    return generate_spectrogram(filename, model.data_config), model.string_processor.str_to_labels(sentence)
 
 
 def inference_all_at_once(input_file):
@@ -56,13 +56,13 @@ def inference_in_chunks(input_file, useful_frame_width=60):
     n_features, n_timesteps = spectrogram.shape
 
     padding = 15
-    lookahead_overflow = model.config.lookahead_context * 2  # times two because of the strides in layer 1
+    lookahead_overflow = model.model_config.lookahead_context * 2  # times two because of the strides in layer 1
     total_frame_width = padding + useful_frame_width + lookahead_overflow + padding  # add left and right padding
     iterations = (n_timesteps - lookahead_overflow) // useful_frame_width + 1
     useful_output_width = useful_frame_width // 2  # divide by two because of the strides in the first layer
 
-    lstm_hn = torch.zeros(model.config.num_layers, model.config.hidden_size).to(model.device)
-    lstm_cn = torch.zeros(model.config.num_layers, model.config.hidden_size).to(model.device)
+    lstm_hn = torch.zeros(model.model_config.num_rnn_layers, model.model_config.hidden_size).to(model.device)
+    lstm_cn = torch.zeros(model.model_config.num_rnn_layers, model.model_config.hidden_size).to(model.device)
     ys = None
 
     # Example below illustrates the chunking for 3 iterations:
