@@ -75,15 +75,18 @@ class MicrophoneSpectrogramSource: SpectrogramRendererDataSource {
         let bus: AVAudioNodeBus = 0
         let inputFormat = inputNode.inputFormat(forBus: bus)
 
-        // AVFoundation does not guarantee the sample rate to equal 16000 but it seems to work
-        // just in case, assert that this is the case
+        // AVFoundation does not guarantee the sample rate to equal 16000 but it seems to
+        // work on iPhone (not in the simulator). Just in case we assert
         assert(inputFormat.sampleRate == self.sampleRate)
 
-        // But installTap has a minimum of 100ms of buffer so we need to chunck after we receive a new buffer
-        let frameLength = AVAudioFrameCount(self.frameLength / 2)
+        // .installTap outputs a minimum of 100ms of buffer so we need to chunck frames
+        // after we receive a new buffer otherwise we could have processed frame by frame
+        let frameLength = AVAudioFrameCount(self.frameLength)
 
         inputNode.installTap(onBus: bus, bufferSize: frameLength, format: inputFormat) { (buffer: AVAudioPCMBuffer, time: AVAudioTime) in
             let wave = buffer.unsafeToVector()
+
+            // Make sure we can chunck incomming the wave into frames
             assert(wave.count % self.frameLength == 0)
 
             // We add two frames from the previous wave to account to account for disabling reflections on the STFT
@@ -120,6 +123,7 @@ class MicrophoneSpectrogramSource: SpectrogramRendererDataSource {
     // MARK: - SpectrogramRendererDataSource
     
     /// The texture containing the spectrogram, ready for rendering
+    /// This texture should be considered a ring buffer with the correct start position referenced by `textureHeightOffset`
     private(set) var texture: MTLTexture
 
     var textureHeightOffset: Int {

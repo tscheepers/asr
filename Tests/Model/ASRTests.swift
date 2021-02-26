@@ -5,8 +5,12 @@ class ASRTests: XCTestCase {
 
     func testASR() {
         let asr = ASR()
-        let text = asr.speechToText(wave: Fixtures.libriSpeechSample)
-        XCTAssertEqual(text, "IN EIGHTEEN SIXTY TWO ALLAH WAS I NIGTY WITH A PURPOSE OF SUPPRESSING PORAL MARRIAGE AND AS HAD BEEN PREDICTED IN THE NATIONAL SENANT PRAYER TO ITS PASSAGE IT LAY FOR MANY YEARS SAID DEAD LETTER")
+        measure {
+            let text = asr.speechToText(wave: Fixtures.libriSpeechSample)
+
+            // This string is not fully correct of course, but it is correctly decoding the entire file in chuncks
+            XCTAssertEqual(text, "in eighteen sixty two a law wis enichty with a purpose of supressing boral merriage ed is had been bredicted in the dashonal citic prayere to its passage it lay fror mitte years had ded lettere")
+        }
     }
 
 }

@@ -37,10 +37,10 @@ Example `train.tsv` file:
 - [x] Train on LibriSpeech (English)
 - [x] Export the model using coremltools [`code`](Train/coreml.py)
 - [x] Prepare Corpus Gesproken Nederlands, _thanks [@wilrop](https://github.com/wilrop/Import-CGN)_  
+- [x] Integrate spec augment
 - [ ] Train on Common Voice Dutch + Corpus Gesproken Nederlands
 - [ ] Train on LibriSpeech + Common Voice + Corpus Gesproken Nederlands
 - [ ] Train a small Transformer language model on Dutch Wikipedia, to improve decoding
-- [x] Integrate spec augment
 - [ ] Create a second model class using `3 FC` → `1 LSTM` → `1 FC` and windowed input, inspired by the up-to-date model by [Mozilla](https://github.com/mozilla/DeepSpeech)
 - [ ] Improve spec augment with additions done by [Mozilla](https://github.com/mozilla/DeepSpeech)
 - [ ] Train model on the Dutch and English datasets simultaniously to create a blended model that is able to predict both languages
@@ -50,13 +50,13 @@ Example `train.tsv` file:
 - [x] Test our custom STFT with [librosa](https://librosa.org/) reference
 - [x] Load pretrained [deepspeech.pytorch](https://github.com/SeanNaren/deepspeech.pytorch) using coremltools
 - [x] Tap microphone data [`code`](Source/Audio/MicrophoneSpectrogramSource.swift)
-- [ ] Load model reading for streaming inference
-- [ ] Implement streaming inference in Swift
-- [x] Implement greedy decoding in Swift
-- [ ] Implement CTC Beam Search decoder in Swift
-- [ ] Use microphone for streaming inference
 - [x] Load custom model using coremltools into the iPhone codebase
-- [ ] Augment decoder with Transformer based language model
+- [x] Load model reading for streaming inference
+- [x] Implement streaming inference in Swift [`code`](Source/Model/ASR.swift)
+- [x] Implement greedy decoding in Swift
+- [ ] Use microphone for streaming inference
 - [x] Render spectrogram input as it is coming in from the microphone [`code`](Source/SpectrogramRenderer/SpectrogramRenderer.swift) [`shader`](Source/SpectrogramRenderer/Shaders.metal)
 - [ ] Render raw model output characters on top of the spectrogram
 - [ ] Render decoded model output below the raw output
+- [ ] Augment decoder with Transformer based language model
+- [ ] Implement CTC Beam Search decoder in Swift

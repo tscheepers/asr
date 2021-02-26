@@ -36,6 +36,7 @@
 		76608DE525D6BA88000C6BE5 /* DeepSpeech.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 76608DA225D6AA6E000C6BE5 /* DeepSpeech.mlmodel */; };
 		76608DE925D6BC1A000C6BE5 /* Vector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608DE825D6BC1A000C6BE5 /* Vector.swift */; };
 		76608DEC25D6BC1E000C6BE5 /* Vector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608DE825D6BC1A000C6BE5 /* Vector.swift */; };
+		766FB46A25E92DF60069D598 /* SpectrogramRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 767371AC25E67F98004D6454 /* SpectrogramRenderer.swift */; };
 		767371A725E67F8E004D6454 /* SpectrogramViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 767371A625E67F8E004D6454 /* SpectrogramViewController.swift */; };
 		767371AD25E67F98004D6454 /* SpectrogramRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 767371AC25E67F98004D6454 /* SpectrogramRenderer.swift */; };
 		767371B125E68076004D6454 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 767371B025E68076004D6454 /* Shaders.metal */; };
@@ -404,6 +405,7 @@
 				76608DEC25D6BC1E000C6BE5 /* Vector.swift in Sources */,
 				76608DCB25D6B070000C6BE5 /* ComplexMatrix.swift in Sources */,
 				7640CE0725D69CBB006993BF /* ComplexMatrixTest.swift in Sources */,
+				766FB46A25E92DF60069D598 /* SpectrogramRenderer.swift in Sources */,
 				76608DC725D6B070000C6BE5 /* Matrix+DFT.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

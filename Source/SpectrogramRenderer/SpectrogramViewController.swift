@@ -6,7 +6,7 @@ class SpectrogramViewController: UIViewController {
 
     let renderer: SpectrogramRenderer = SpectrogramRenderer()
 
-    var spectrogramSource: MicrophoneSpectrogramSource!
+    var spectrogramSource: SpectrogramRendererDataSource!
 
     var metalLayer: CAMetalLayer!
 
@@ -20,11 +20,14 @@ class SpectrogramViewController: UIViewController {
         zoomRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(SpectrogramViewController.zoom(gestureRecognizer:)))
         view.addGestureRecognizer(zoomRecognizer)
 
-//        spectrogramSource = FileSpectrogramSource(named: "librispeech-sample", device: renderer.device)
-        spectrogramSource = MicrophoneSpectrogramSource(device: renderer.device)
+        let microphoneSpectrogramSource = MicrophoneSpectrogramSource(device: renderer.device)
+        // spectrogramSource = FileSpectrogramSource(named: "librispeech-sample", device: renderer.device)
+
+        spectrogramSource = microphoneSpectrogramSource
         renderer.dataSource = spectrogramSource
 
-        spectrogramSource.start()
+        // Start listening
+        microphoneSpectrogramSource.start()
 
         metalLayer = renderer.createMetalLayer(frame: view.layer.frame)
         view.layer.addSublayer(metalLayer)
@@ -39,6 +42,8 @@ class SpectrogramViewController: UIViewController {
         timer = nil
     }
 
+    private let minZoom: Double = 0.05
+    private let maxZoom: Double = 1.0
     private var zoomStart: Double = 1.0
     private var zoom: Double = 1.0 {
         didSet {
@@ -46,11 +51,13 @@ class SpectrogramViewController: UIViewController {
         }
     }
 
+    /// Allow pinching to zoom the spectrogram
     @objc func zoom(gestureRecognizer: UIPinchGestureRecognizer) {
+        // We make sure there is single value describing the zoom state, across different pinch gestures.
         switch gestureRecognizer.state {
         case .began,
              .changed:
-            zoom = fmin(fmax(zoomStart * 1.0 / Double(gestureRecognizer.scale), 0.05), 1.0)
+            zoom = fmin(fmax(zoomStart * 1.0 / Double(gestureRecognizer.scale), minZoom), maxZoom)
         case .ended:
             zoomStart = zoom
         case .cancelled,

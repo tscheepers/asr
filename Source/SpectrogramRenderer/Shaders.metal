@@ -28,10 +28,13 @@ fragment float4 fragment_shader(Vertex vtx [[stage_in]],
                             address::clamp_to_zero,
                             filter::linear);
 
+    // Pinching to zoom towards the newest part of the spectrogram
     float2 zommed = float2(1.0, params.zoom) * vtx.uv;
 
+    // Reverse the spectrogram on the screen (so new information is comming in from the right)
     float2 reversed = float2(zommed.r, 1.0 - zommed.g);
 
+    // Offset for the ring buffer
     float2 offset = float2(reversed.r, fmod(reversed.g + params.heightOffset, 1.0));
 
     float cell = field.sample(smplr, offset).r;
