@@ -3,6 +3,7 @@ import UIKit
 import AVFoundation
 import Accelerate
 import Metal
+import Combine
 
 class MicrophoneSpectrogramSource: SpectrogramRendererDataSource {
 
@@ -21,6 +22,9 @@ class MicrophoneSpectrogramSource: SpectrogramRendererDataSource {
     /// Points to the column in the texture we can fill when a new frame arrives
     /// This should always be `0 <= texturePointer < textureWidth`
     var texturePointer: Int = 0
+
+    /// Subscribe to this subject to receive audio waves
+    var spectrogramSubject: PassthroughSubject<Matrix<Float>, Error> = PassthroughSubject()
 
     init(frameLength: Int = 320, sampleRate: Double = 16_000, device: MTLDevice) {
         self.frameLength = frameLength
@@ -115,9 +119,14 @@ class MicrophoneSpectrogramSource: SpectrogramRendererDataSource {
 
         // TODO: Add normalization using running mean and standard deviation
 
+        let normalized = (spectrogram - spectrogram.mean) / spectrogram.std
+
+        // Publish spectrogram
+        spectrogramSubject.send(normalized)
+
         // Update texture
-        spectrogram.fill(texture: texture, offset: (0, texturePointer % texture.height))
-        texturePointer = texturePointer + spectrogram.height
+        normalized.fill(texture: texture, offset: (0, texturePointer % texture.height))
+        texturePointer = texturePointer + normalized.height
     }
 
     // MARK: - SpectrogramRendererDataSource

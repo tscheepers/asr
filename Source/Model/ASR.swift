@@ -69,8 +69,8 @@ class ASR {
     func convertToSpectrogram(wave: [Float]) -> Matrix<Float>
     {
         let magnitude = wave.shortTimeFourierTransform(nFFT: nFFT, hopLength: hopLength, window: .hamming).magnitude()
-        let sepectrogram = log(1 + magnitude)
-        let normalized = (sepectrogram - sepectrogram.mean) / sepectrogram.std
+        let spectrogram = log(1 + magnitude)
+        let normalized = (spectrogram - spectrogram.mean) / spectrogram.std
         return normalized
     }
 
@@ -147,20 +147,20 @@ class ASR {
     /// Call the model using CoreML
     func inferenceChunck(
         spectrogram input: Matrix<Float>,
-        hn: Matrix<Float>,
-        cn: Matrix<Float>
+        h0: Matrix<Float>,
+        c0: Matrix<Float>
     ) -> (output: Matrix<Float>, hn: Matrix<Float>, cn: Matrix<Float>) {
 
         let transposed = input.width == numInputFeatures && input.height != numInputFeatures
         let spectrogram = transposed ? input.transposed() : input
 
         assert(spectrogram.height == numInputFeatures && spectrogram.width == totalChunckWidth)
-        assert(hn.height == numRNNLayers && hn.width == hiddenSize)
-        assert(cn.height == numRNNLayers && cn.width == hiddenSize)
+        assert(h0.height == numRNNLayers && h0.width == hiddenSize)
+        assert(c0.height == numRNNLayers && c0.width == hiddenSize)
 
         // Pass in lstm_hn and lstm_cn from the previous iteration, so the hidden states are preserved
         let output = try! model.predictions(inputs: [
-            ASRModelInput(spectrogram: spectrogram.createMLMultiArray(), h0: hn.createMLMultiArray(), c0: cn.createMLMultiArray())
+            ASRModelInput(spectrogram: spectrogram.createMLMultiArray(), h0: h0.createMLMultiArray(), c0: c0.createMLMultiArray())
         ])
 
         // Omit the output with lookahead overflow

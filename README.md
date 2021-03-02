@@ -54,7 +54,7 @@ Example `train.tsv` file:
 - [x] Load model reading for streaming inference
 - [x] Implement streaming inference in Swift [`code`](Source/Model/ASR.swift)
 - [x] Implement greedy decoding in Swift
-- [ ] Use microphone for streaming inference
+- [x] Use microphone for streaming inference
 - [x] Render spectrogram input as it is coming in from the microphone [`code`](Source/SpectrogramRenderer/SpectrogramRenderer.swift) [`shader`](Source/SpectrogramRenderer/Shaders.metal)
 - [ ] Render raw model output characters on top of the spectrogram
 - [ ] Render decoded model output below the raw output
