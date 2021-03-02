@@ -77,7 +77,7 @@ class ASR {
     /// Call the model using CoreML
     func inference(spectrogram: Matrix<Float>) -> Matrix<Float> {
 
-        let transposed = spectrogram.width == numInputFeatures && spectrogram != numInputFeatures
+        let transposed = spectrogram.width == numInputFeatures && spectrogram.height != numInputFeatures
         assert((transposed && spectrogram.width == numInputFeatures) || (!transposed && spectrogram.height == numInputFeatures))
 
         let totalFrames = transposed ? spectrogram.height : spectrogram.width
@@ -151,7 +151,7 @@ class ASR {
         cn: Matrix<Float>
     ) -> (output: Matrix<Float>, hn: Matrix<Float>, cn: Matrix<Float>) {
 
-        let transposed = input.width == numInputFeatures && input != numInputFeatures
+        let transposed = input.width == numInputFeatures && input.height != numInputFeatures
         let spectrogram = transposed ? input.transposed() : input
 
         assert(spectrogram.height == numInputFeatures && spectrogram.width == totalChunckWidth)

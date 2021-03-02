@@ -18,6 +18,7 @@ vertex Vertex vertex_shader(constant float4 *vertices [[buffer(0)]],
 struct FragmentShaderParameters {
     float zoom;
     float heightOffset;
+    float heightOverflow;
 };
 
 fragment float4 fragment_shader(Vertex vtx [[stage_in]],
@@ -34,8 +35,11 @@ fragment float4 fragment_shader(Vertex vtx [[stage_in]],
     // Reverse the spectrogram on the screen (so new information is comming in from the right)
     float2 reversed = float2(zommed.r, 1.0 - zommed.g);
 
+    // Make sure the smooth buffer fill is not on screen
+    float2 overflowed = float2(1.0, 1.0 - params.heightOverflow) * reversed;
+
     // Offset for the ring buffer
-    float2 offset = float2(reversed.r, fmod(reversed.g + params.heightOffset, 1.0));
+    float2 offset = float2(overflowed.r, fmod(overflowed.g + params.heightOffset, 1.0));
 
     float cell = field.sample(smplr, offset).r;
     return float4(cell);

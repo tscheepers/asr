@@ -76,7 +76,7 @@ class SpectrogramRenderer {
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
         renderEncoder.setFragmentTexture(dataSource.texture, index: 0)
 
-        var params = FragmentShaderParameters(zoom: zoom, textureHeightOffset:smoothedNormalizedTextureHeightOffset)
+        var params = FragmentShaderParameters(zoom: zoom, textureHeightOffset:smoothedNormalizedTextureHeightOffset, textureHeightOverflow: normalizedHeightOverflow)
         renderEncoder.setFragmentBytes(&params, length: MemoryLayout<FragmentShaderParameters>.stride, index: 0)
 
         renderEncoder.drawPrimitives(
@@ -107,12 +107,9 @@ class SpectrogramRenderer {
         // Extrapolate offset
         if (dataSource.textureHeightOffset == latestTextureHeightOffset) {
 
-            //let timeDiff = Float(latestTextureHeightReceivedAt - previousTextureHeightReceivedAt)
-            let timeDiff: Float = 0.1
-            let offsetDiff = Float(latestTextureHeightOffset - previousTextureHeightOffset)
-
+            let timeDiff: Float = 0.1  // Float(latestTextureHeightReceivedAt - previousTextureHeightReceivedAt)
             let timeSinceLatest = Float(CACurrentMediaTime() - latestTextureHeightReceivedAt)
-            let extrapolatedOffset: Float = timeSinceLatest * offsetDiff / timeDiff
+            let extrapolatedOffset: Float = timeSinceLatest * heightOverflow / timeDiff
 
             return (Float(latestTextureHeightOffset) + extrapolatedOffset).truncatingRemainder(dividingBy: textureHeight) / textureHeight
         }
@@ -124,6 +121,18 @@ class SpectrogramRenderer {
         latestTextureHeightReceivedAt = CACurrentMediaTime()
 
         return Float(latestTextureHeightOffset).truncatingRemainder(dividingBy: textureHeight) / textureHeight
+    }
+
+    /// Amount of spectrogram columns filled each time new data comes in
+    /// Because of the smooth offset we need to account for data not yet being in the buffer, and thus should not render
+    /// this small portion of the texture
+    private var heightOverflow: Float {
+        return Float(latestTextureHeightOffset - previousTextureHeightOffset)
+    }
+
+    private var normalizedHeightOverflow: Float {
+        guard let dataSource = self.dataSource else { return 0.0 }
+        return heightOverflow / Float(dataSource.texture.height)
     }
 
     // MARK: -
@@ -181,4 +190,5 @@ class SpectrogramRenderer {
 fileprivate struct FragmentShaderParameters {
     let zoom: Float
     let textureHeightOffset: Float
+    let textureHeightOverflow: Float
 }
